@@ -62,7 +62,7 @@ function drawHeader(title, page) {
 
 // draw a section title
 function drawSection(title) {
-  c.setColour(g.theme.dark ? 'Cyan' : 'Blue');
+  g.setColor(g.theme.dark ? c.CYAN : c.BLUE);
   g.drawLine(borderPixels, y, g.getWidth() - borderPixels, y);
   y += 2;
 
