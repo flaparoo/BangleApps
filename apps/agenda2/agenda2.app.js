@@ -10,7 +10,7 @@ require("Font8x16").add(Graphics);
 const c = require('colourslib');
 
 const maxStart = Date.now() + SHOW_DAYS*86400000;
-const dateColour = ( g.theme.dark ? 'Green' : 'Blue' );
+const dateColour = ( g.theme.dark ? c.GREEN : c.BLUE );
 
 var allEvents;
 var scrollOffset = 0;
@@ -88,12 +88,12 @@ function drawEvents() {
 
     // separator
     if (date != prevDate) {
-      c.setColour(dateColour);
+      g.setColor(dateColour);
       if (y > -4 && y < g.getHeight())
         g.fillRect(0, y, g.getWidth(), y + 2);
       y += 4;
     } else {
-      c.setColour('Grey');
+      g.setColor(c.GREY);
       if (y > -2 && y < g.getHeight())
         g.drawLine(0, y, g.getWidth(), y);
       y += 2;
