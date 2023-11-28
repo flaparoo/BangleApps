@@ -1,0 +1,18 @@
+{
+  "id": "metis",
+  "name": "Metis Info App",
+  "shortName":"Metis",
+  "version":"0.90",
+  "description": "All sorts of information (data from the watch, and calculated infos)",
+  "icon": "metis.png",
+  "screenshots": [{ "url": "screenshot.png" }, { "url": "screenshot2.png" }, { "url": "screenshot3.png" }],
+  "type": "app",
+  "tags": "tool",
+  "supports": ["BANGLEJS2"],
+  "dependencies": { "colourslib": "module", "solcalc": "module" },
+  "readme": "README.md",
+  "storage": [
+    { "name":"metis.app.js", "url":"metis.app.js" },
+    { "name":"metis.img",    "url":"metis-icon.js", "evaluate":true }
+  ]
+}
