@@ -1,0 +1,16 @@
+{
+  "id": "solcalc",
+  "name": "Solar Calculations Module",
+  "shortName":"SolCalc Lib",
+  "version":"0.90",
+  "description": "Module/library to calculate Sunrise, Sunset and Solar Noon",
+  "icon": "solcalc.png",
+  "type": "module",
+  "tags": "outdoors",
+  "supports": ["BANGLEJS2"],
+  "provides_modules": ["solcalc"],
+  "readme": "README.md",
+  "storage": [
+    { "name":"solcalc", "url":"solcalc.js" }
+  ]
+}
