@@ -1,0 +1,18 @@
+{
+  "id": "agenda2",
+  "name": "Another Agenda App",
+  "shortName":"Agenda2",
+  "version":"0.90",
+  "description": "List of upcoming events (calendar and alarms)",
+  "icon": "agenda2.png",
+  "screenshots": [{ "url": "screenshot.png" }, { "url": "screenshot2.png" }],
+  "type": "app",
+  "tags": "agenda",
+  "supports": ["BANGLEJS2"],
+  "dependencies": { "colourslib": "module" },
+  "readme": "README.md",
+  "storage": [
+    { "name":"agenda2.app.js", "url":"agenda2.app.js" },
+    { "name":"agenda2.img",    "url":"agenda2-icon.js", "evaluate":true }
+  ]
+}
