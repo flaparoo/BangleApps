@@ -1,0 +1,203 @@
+
+/*
+ * Aviation Weather (AVWX) - Bangle.js
+ *
+ * AVWX doco: https://avwx.docs.apiary.io/#reference/0/metar
+ * ex: curl -X GET 'https://avwx.rest/api/metar/-31.95,115.86?token=...
+ *
+ */
+
+require('DateExt');
+require("Font8x12").add(Graphics);
+const c = require('colourslib');
+
+const APP_NAME = 'avwx';
+
+const timeColour = ( g.theme.dark ? 'DarkBlue' : 'LightBlue' );
+const headerBgColour = ( g.theme.dark ? 'White' : 'Black' );
+
+
+// read in the settings
+var settings = Object.assign({
+  AVWXtoken: '',
+  font: 2,  // Large
+}, require('Storage').readJSON(APP_NAME+'.json', true) || {});
+
+
+// globals
+var headerTimeout;
+
+var METARrequest;
+var METAR = 'METAR update in progress';
+var TAFrequest;
+var TAF = 'TAF update in progress';
+var updateInProgress = true;
+var linesCount = 0;
+var scrollLines = 0;
+
+
+// set timeout for per-minute updates
+function queueHeaderUpdate() {
+  if (headerTimeout) clearTimeout(headerTimeout);
+  headerTimeout = setTimeout(function() {
+    headerTimeout = undefined;
+    drawHeader();
+  }, 60000 - (Date.now() % 60000));
+}
+
+// draw header info
+function drawHeader() {
+  c.setBgColour(headerBgColour);
+  g.clearRect(0, 0, g.getWidth(), 17);
+
+  var now = new Date();
+  var nowUTC = new Date(now + (now.getTimezoneOffset() * 1000 * 60));
+  g.setFontAlign(-1, -1).setFont("Vector", 16);
+  c.setColour(timeColour);
+  g.drawString(nowUTC.as("0D0h0m").str + "Z", 0, 0, true);
+
+  g.clearRect(g.getWidth() / 2, 0, g.getWidth(), 17);
+  g.setFontAlign(1, -1).setFont("8x12");
+  c.setColour('Red');
+  g.drawString( updateInProgress ? 'Updating...' : '' , g.getWidth(), 2);
+
+  queueHeaderUpdate();
+}
+
+
+// draw the METAR/TAF info
+function draw() {
+  g.clear(reset);
+
+  drawHeader();
+
+  g.setBgColor(g.theme.bg);
+  g.setFontAlign(-1, -1).setColor(g.theme.fg);
+  switch (settings.font) {
+    case 0:   // Small
+      g.setFont("8x12");
+      linesCount = -13;
+      break;
+    case 1:   // Medium
+      g.setFont("Vector", 16);
+      linesCount = -9;
+      break;
+    default:  // Large
+      g.setFont("Vector", 22);
+      linesCount = -7;
+  }
+  var lines = g.wrapString(METAR, g.getWidth());
+  lines.push('');
+  lines = lines.concat(g.wrapString(TAF, g.getWidth()));
+  linesCount += lines.length;
+  lines.splice(0, scrollLines);
+  g.drawString(lines.join("\n"), 0, 18, true);
+}
+
+// update the METAR info (incl. schedule next update)
+function updateAVWX() {
+  if (! settings.AVWXtoken) {
+    METAR = 'No AVWX API Token defined!';
+    TAF = '';
+    linesCount = 0; scrollLines = 0;
+    draw();
+    return;
+  }
+
+  Bangle.setGPSPower(true, APP_NAME);
+  Bangle.on('GPS', fix => {
+    if (METARrequest || TAFrequest) { return; }
+    if ('fix' in fix && fix.fix != 0) {
+      Bangle.setGPSPower(false, APP_NAME);
+      var lat = fix.lat;
+      var long = fix.lon;
+
+      // get METAR
+      METARrequest = Bangle.http('https://avwx.rest/api/metar/'+lat+','+long+
+          '?token='+settings.AVWXtoken).then(data => {
+        var METARjson = JSON.parse(data.resp);
+        if ('sanitized' in METARjson) {
+          METAR = METARjson.sanitized;
+        } else {
+          METAR = 'No "sanitized" METAR data found!';
+        }
+        linesCount = 0; scrollLines = 0;
+        METARrequest = undefined;
+        if (! TAFrequest) { updateInProgress = false; }
+        draw();
+      }).catch(error => {
+        console.log(error);
+        METAR = 'METAR ERR: ' + error;
+        linesCount = 0; scrollLines = 0;
+        METARrequest = undefined;
+        if (! TAFrequest) { updateInProgress = false; }
+        draw();
+      });
+
+      // get TAF
+      TAFrequest = Bangle.http('https://avwx.rest/api/taf/'+lat+','+long+
+          '?token='+settings.AVWXtoken).then(data => {
+        var TAFjson = JSON.parse(data.resp);
+        if ('raw' in TAFjson) {
+          TAF = TAFjson.raw;
+        } else {
+          TAF = 'No "raw" TAF data found!';
+        }
+        linesCount = 0; scrollLines = 0;
+        TAFrequest = undefined;
+        if (! METARrequest) { updateInProgress = false; }
+        draw();
+      }).catch(error => {
+        console.log(error);
+        TAF = 'TAF ERR: ' + error;
+        linesCount = 0; scrollLines = 0;
+        TAFrequest = undefined;
+        if (! METARrequest) { updateInProgress = false; }
+        draw();
+      });
+    }
+  });
+}
+
+
+/*
+ * initialise app
+ */
+g.clear();
+
+updateAVWX();
+draw();
+
+
+// scroll (up/down swipes)
+Bangle.setUI("updown", action => {
+  switch (action) {
+    case -1:  // top tap
+      if (scrollLines < linesCount) {
+        scrollLines += 2;
+        if (scrollLines > linesCount) { scrollLines = linesCount; }
+      }
+      break;
+    case 1:   // bottom tap
+      if (scrollLines > 0) {
+        scrollLines -= 2;
+        if (scrollLines < 0) { scrollLines = 0; }
+      }
+      break;
+    default:  // update on other taps
+      updateInProgress = true;
+      updateAVWX();
+  }
+  draw();
+});
+// exit on button press
+setWatch(e => { Bangle.showClock(); }, BTN1);
+
+
+// for debugging:
+//settings.AVWXtoken = 'abc';
+//METAR = 'YAAA 150300Z 17019KT 9999 SCT009 SCT022 BKN100 21/18 Q1010 RMK RF000/0000';
+//TAF = 'YAAA 150213Z 1503/1606 17018KT 9999 FEW010 BKN022 FM150800 15008KT 9999 FEW010 BKN020 FM151200 19006KT 9999 SCT010 BKN016 FM152300 13008KT 9999 BKN020 FM160200 13016KT 9999 BKN025 RMK T 22 22 21 20 Q 1010 1009 1010 1010 TAF3';
+//METARrequest = true;
+//setTimeout(function() { METARrequest = undefined; drawHeader(); }, 3*1000);
+//settings.font = 1;

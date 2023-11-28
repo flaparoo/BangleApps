@@ -1,0 +1,21 @@
+{
+  "id": "avwx",
+  "name": "Aviation Weather",
+  "shortName":"AVWX",
+  "version":"0.90",
+  "description": "Shows the latest METAR and TAF for the nearest airport",
+  "icon": "avwx.png",
+  "screenshots": [{ "url": "screenshot.png" }],
+  "type": "app",
+  "tags": "outdoors",
+  "supports": ["BANGLEJS2"],
+  "dependencies": { "colourslib": "module" },
+  "readme": "README.md",
+  "custom": "custom.html",
+  "storage": [
+    { "name":"avwx.app.js",      "url":"avwx.app.js" },
+    { "name":"avwx.settings.js", "url":"avwx.settings.js" },
+    { "name":"avwx.img",         "url":"avwx-icon.js", "evaluate":true }
+  ],
+  "data": [{ "name":"avwx.json" }]
+}
