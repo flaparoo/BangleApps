@@ -13,8 +13,8 @@ const c = require('colourslib');
 
 const APP_NAME = 'avwx';
 
-const timeColour = ( g.theme.dark ? 'DarkBlue' : 'LightBlue' );
-const headerBgColour = ( g.theme.dark ? 'White' : 'Black' );
+const timeColour = ( g.theme.dark ? c.DARK_BLUE : c.LIGHT_BLUE );
+const headerBgColour = ( g.theme.dark ? c.WHITE : c.BLACK );
 
 
 // read in the settings
@@ -47,18 +47,16 @@ function queueHeaderUpdate() {
 
 // draw header info
 function drawHeader() {
-  c.setBgColour(headerBgColour);
+  g.setBgColor(headerBgColour);
   g.clearRect(0, 0, g.getWidth(), 17);
 
   var now = new Date();
   var nowUTC = new Date(now + (now.getTimezoneOffset() * 1000 * 60));
-  g.setFontAlign(-1, -1).setFont("Vector", 16);
-  c.setColour(timeColour);
+  g.setFontAlign(-1, -1).setFont("Vector", 16).setColor(timeColour);
   g.drawString(nowUTC.as("0D0h0m").str + "Z", 0, 0, true);
 
   g.clearRect(g.getWidth() / 2, 0, g.getWidth(), 17);
-  g.setFontAlign(1, -1).setFont("8x12");
-  c.setColour('Red');
+  g.setFontAlign(1, -1).setFont("8x12").setColor(c.RED);
   g.drawString( updateInProgress ? 'Updating...' : '' , g.getWidth(), 2);
 
   queueHeaderUpdate();
