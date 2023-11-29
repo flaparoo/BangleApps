@@ -15,12 +15,21 @@
 
     <script src="../../core/lib/customize.js"></script>
     <script>
+      var settings = {};
+
+      function onInit(device) {
+        Util.readStorageJSON('avwx.json', currentSettings => {
+          settings = currentSettings;
+          if ('AVWXtoken' in settings)
+            document.getElementById('AVWXtoken').value = settings.AVWXtoken;
+        });
+      }
+
       document.getElementById("upload").addEventListener("click", function() {
-        var settings = {};
         settings.AVWXtoken = document.getElementById('AVWXtoken').value;
         sendCustomizedApp({
           storage:[
-            {name:"avwx.json", content:JSON.stringify(settings)},
+            { name: "avwx.json", content: JSON.stringify(settings) },
           ]
         });
       });
