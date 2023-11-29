@@ -28,9 +28,9 @@ var settings = Object.assign({
 var headerTimeout;
 
 var METARrequest;
-var METAR = 'METAR update in progress';
+var METAR = '';
 var TAFrequest;
-var TAF = 'TAF update in progress';
+var TAF = '';
 var updateInProgress = true;
 var linesCount = 0;
 var scrollLines = 0;
@@ -102,6 +102,11 @@ function updateAVWX() {
     return;
   }
 
+  METAR = '\nGetting GPS fix...';
+  TAF = '';
+  linesCount = 0; scrollLines = 0;
+  draw();
+
   Bangle.setGPSPower(true, APP_NAME);
   Bangle.on('GPS', fix => {
     if (METARrequest || TAFrequest) { return; }
@@ -109,6 +114,11 @@ function updateAVWX() {
       Bangle.setGPSPower(false, APP_NAME);
       var lat = fix.lat;
       var long = fix.lon;
+
+      METAR = 'Requesting METAR...';
+      TAF = 'Requesting TAF...';
+      linesCount = 0; scrollLines = 0;
+      draw();
 
       // get METAR
       METARrequest = Bangle.http('https://avwx.rest/api/metar/'+lat+','+long+
