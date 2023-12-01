@@ -9,7 +9,7 @@
   "type": "app",
   "tags": "tool",
   "supports": ["BANGLEJS2"],
-  "dependencies": { "colourslib": "module", "solcalc": "module" },
+  "dependencies": { "solcalc": "module" },
   "readme": "README.md",
   "storage": [
     { "name":"metis.app.js", "url":"metis.app.js" },

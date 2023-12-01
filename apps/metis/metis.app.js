@@ -5,8 +5,10 @@
 const storage = require("Storage");
 const locale = require('locale');
 const solcalc = require('solcalc');
-const c = require('colourslib');
 const ENV = process.env;
+
+const COLOUR_BLUE          = 0x001f;   // same as: g.setColor(0, 0, 1)
+const COLOUR_CYAN          = 0x07ff;   // same as: g.setColor(0, 1, 1)
 
 const APP_NAME = 'metis';
 const headerFontSize = 16;
@@ -62,7 +64,7 @@ function drawHeader(title, page) {
 
 // draw a section title
 function drawSection(title) {
-  g.setColor(g.theme.dark ? c.CYAN : c.BLUE);
+  g.setColor(g.theme.dark ? COLOUR_CYAN : COLOUR_BLUE);
   g.drawLine(borderPixels, y, g.getWidth() - borderPixels, y);
   y += 2;
 
