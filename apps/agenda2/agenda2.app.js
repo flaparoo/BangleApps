@@ -1,16 +1,18 @@
 /*
- * Timeline - Banglejs
- *
+ * Agenda2 - Another Agenda App - Banglejs
  */
 
 const SHOW_DAYS = 3;
 
 require('DateExt');
 require("Font8x16").add(Graphics); 
-const c = require('colourslib');
+
+const COLOUR_GREY          = 0x8410;   // same as: g.setColor(0.5, 0.5, 0.5)
+const COLOUR_GREEN         = 0x07e0;   // same as: g.setColor(0, 1, 0)
+const COLOUR_BLUE          = 0x001f;   // same as: g.setColor(0, 0, 1)
 
 const maxStart = Date.now() + SHOW_DAYS*86400000;
-const dateColour = ( g.theme.dark ? c.GREEN : c.BLUE );
+const dateColour = ( g.theme.dark ? COLOUR_GREEN : COLOUR_BLUE );
 
 var allEvents;
 var scrollOffset = 0;
@@ -27,7 +29,6 @@ function getEvents() {
   for (let idx in alarms) {
     let alarm = alarms[idx];
 
-    let time = require("time_utils").decodeTime(alarm.t);
     if (! alarm.on) continue;
 
     let timeToAlarm = require("sched").getTimeToAlarm(alarm);
@@ -81,6 +82,13 @@ function drawEvents() {
 
   g.clear(reset);
 
+  if (! allEvents.length) {
+    g.setColor(dateColour).setFontAlign(0, 0).setFont("Vector", 20);
+    let msg = g.wrapString('You can relax - there are no upcoming events!', g.getWidth());
+    g.drawString(msg.join("\n"), g.getWidth()/2, g.getHeight()/2, false);
+    return;
+  }
+
   for (let idx in allEvents) {
     let event = allEvents[idx];
 
@@ -93,7 +101,7 @@ function drawEvents() {
         g.fillRect(0, y, g.getWidth(), y + 2);
       y += 4;
     } else {
-      g.setColor(c.GREY);
+      g.setColor(COLOUR_GREY);
       if (y > -2 && y < g.getHeight())
         g.drawLine(0, y, g.getWidth(), y);
       y += 2;
@@ -180,3 +188,4 @@ setWatch(e => { Bangle.showClock(); }, BTN1);
 
 // for debugging:
 //console.log(allEvents);
+

@@ -9,7 +9,6 @@
   "type": "app",
   "tags": "agenda",
   "supports": ["BANGLEJS2"],
-  "dependencies": { "colourslib": "module" },
   "readme": "README.md",
   "storage": [
     { "name":"agenda2.app.js", "url":"agenda2.app.js" },
