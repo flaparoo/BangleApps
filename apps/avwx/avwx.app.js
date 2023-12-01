@@ -9,12 +9,17 @@
 
 require('DateExt');
 require("Font8x12").add(Graphics);
-const c = require('colourslib');
+
+const COLOUR_BLACK         = 0x0000;   // same as: g.setColor(0, 0, 0)
+const COLOUR_WHITE         = 0xffff;   // same as: g.setColor(1, 1, 1)
+const COLOUR_RED           = 0xf800;   // same as: g.setColor(1, 0, 0)
+const COLOUR_LIGHT_BLUE    = 0x841f;   // same as: g.setColor(0.5, 0.5, 1)
+const COLOUR_DARK_BLUE     = 0x0010;   // same as: g.setColor(0, 0, 0.5)
 
 const APP_NAME = 'avwx';
 
-const timeColour = ( g.theme.dark ? c.DARK_BLUE : c.LIGHT_BLUE );
-const headerBgColour = ( g.theme.dark ? c.WHITE : c.BLACK );
+const timeColour = ( g.theme.dark ? COLOUR_DARK_BLUE : COLOUR_LIGHT_BLUE );
+const headerBgColour = ( g.theme.dark ? COLOUR_WHITE : COLOUR_BLACK );
 
 
 // read in the settings
@@ -56,7 +61,7 @@ function drawHeader() {
   g.drawString(nowUTC.as("0D0h0m").str + "Z", 0, 0, true);
 
   g.clearRect(g.getWidth() / 2, 0, g.getWidth(), 17);
-  g.setFontAlign(1, -1).setFont("8x12").setColor(c.RED);
+  g.setFontAlign(1, -1).setFont("8x12").setColor(COLOUR_RED);
   g.drawString( updateInProgress ? 'Updating...' : '' , g.getWidth(), 2);
 
   queueHeaderUpdate();

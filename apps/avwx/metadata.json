@@ -9,7 +9,6 @@
   "type": "app",
   "tags": "outdoors",
   "supports": ["BANGLEJS2"],
-  "dependencies": { "colourslib": "module" },
   "readme": "README.md",
   "custom": "custom.html",
   "storage": [
