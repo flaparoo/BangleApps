@@ -80,7 +80,7 @@ function drawEvents() {
   let y = scrollOffset;
   let prevDate = '';
 
-  g.clear(reset);
+  g.clear(true);
 
   if (! allEvents.length) {
     g.setColor(dateColour).setFontAlign(0, 0).setFont("Vector", 20);
