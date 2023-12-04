@@ -127,7 +127,7 @@ function updateAVWX() {
 
       // get METAR
       METARrequest = Bangle.http('https://avwx.rest/api/metar/'+lat+','+long+
-          '?token='+settings.AVWXtoken).then(data => {
+          '?filter=sanitized&onfail=nearest&token='+settings.AVWXtoken).then(data => {
         var METARjson = JSON.parse(data.resp);
         if ('sanitized' in METARjson) {
           METAR = METARjson.sanitized;
@@ -149,7 +149,7 @@ function updateAVWX() {
 
       // get TAF
       TAFrequest = Bangle.http('https://avwx.rest/api/taf/'+lat+','+long+
-          '?token='+settings.AVWXtoken).then(data => {
+          '?filter=raw&onfail=nearest&token='+settings.AVWXtoken).then(data => {
         var TAFjson = JSON.parse(data.resp);
         if ('raw' in TAFjson) {
           TAF = TAFjson.raw;
