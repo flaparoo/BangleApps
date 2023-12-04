@@ -86,7 +86,7 @@ function drawLine(title, value) {
 
 // draw the selected page
 function drawPage(page) {
-  g.clear(reset);
+  g.clear(true);
   y = 0;
 
   switch (page) {
