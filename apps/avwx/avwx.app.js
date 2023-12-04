@@ -70,7 +70,7 @@ function drawHeader() {
 
 // draw the METAR/TAF info
 function draw() {
-  g.clear(reset);
+  g.clear(true);
 
   drawHeader();
 
