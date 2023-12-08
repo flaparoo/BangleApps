@@ -4,7 +4,7 @@
   </head>
   <body>
 
-    <p>The METAR/TAF information is obtained from <a href="https://account.avwx.rest/">AVWX</a>. You need an account and generate an API token. The "Hobby" plan - which is free - is sufficient.</p>
+    <p>The METAR/TAF information is obtained from <a href="https://account.avwx.rest/">AVWX</a>. You need an account and generate an API token. The free "Hobby" plan is sufficient, but please consider supporting the AVWX project.</p>
     <p>
       <label class="form-label" for="AVWXtoken">AVWX API Token:</label>
       <input class="form-input" type="text" id="AVWXtoken" placeholder="Your personal AVWX API Token" />
@@ -18,11 +18,19 @@
       var settings = {};
 
       function onInit(device) {
-        Util.readStorageJSON('avwx.json', currentSettings => {
-          settings = currentSettings;
-          if ('AVWXtoken' in settings)
-            document.getElementById('AVWXtoken').value = settings.AVWXtoken;
-        });
+        // read in existing settings to preserve them during an update
+        try {
+          Util.readStorageJSON('avwx.json', currentSettings => {
+            if (currentSettings) {
+              settings = currentSettings;
+              if ('AVWXtoken' in settings) {
+                document.getElementById('AVWXtoken').value = settings.AVWXtoken;
+              }
+            }
+          });
+        } catch (e) {
+          console.log("Failed to read existing settings: "+e);
+        }
       }
 
       document.getElementById("upload").addEventListener("click", function() {
