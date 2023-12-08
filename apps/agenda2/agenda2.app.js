@@ -77,9 +77,6 @@ function getEvents() {
 
 
 function drawEvents() {
-  let y = scrollOffset;
-  let prevDate = '';
-
   g.clear(true);
 
   if (! allEvents.length) {
@@ -89,7 +86,12 @@ function drawEvents() {
     return;
   }
 
-  for (let idx in allEvents) {
+  let y = 0;
+  let prevDate = '';
+
+  maxScrollOffset = allEvents.length - 1;
+
+  for (let idx = scrollOffset; idx < allEvents.length; idx++) {
     let event = allEvents[idx];
 
     let date = event.start.as('T D. C').str;
@@ -97,13 +99,11 @@ function drawEvents() {
     // separator
     if (date != prevDate) {
       g.setColor(dateColour);
-      if (y > -4 && y < g.getHeight())
-        g.fillRect(0, y, g.getWidth(), y + 2);
+      g.fillRect(0, y, g.getWidth(), y + 2);
       y += 4;
     } else {
       g.setColor(COLOUR_GREY);
-      if (y > -2 && y < g.getHeight())
-        g.drawLine(0, y, g.getWidth(), y);
+      g.drawLine(0, y, g.getWidth(), y);
       y += 2;
     }
 
@@ -111,7 +111,7 @@ function drawEvents() {
     g.setFont("8x16");
     if (date != prevDate) {
       g.setFontAlign(1, -1);
-      if (y > -16 && y < g.getHeight())
+      if (y < g.getHeight())
         g.drawString(date, g.getWidth(), y, false);
       prevDate = date;
     }
@@ -128,7 +128,7 @@ function drawEvents() {
     }
     g.setColor(g.theme.fg);
     g.setFontAlign(-1, -1);
-    if (y > -16 && y < g.getHeight())
+    if (y < g.getHeight())
       g.drawString(time, 0, y, false);
     y += 16;
 
@@ -136,7 +136,7 @@ function drawEvents() {
     g.setFontAlign(0, -1).setFont("Vector", 20);
     let titleLines = g.wrapString(event.title, g.getWidth());
     let titleHeight = g.stringMetrics(titleLines.join("\n")).height + 1;
-    if (y > titleHeight * -1 && y < g.getHeight())
+    if (y < g.getHeight())
       g.drawString(titleLines.join("\n"), g.getWidth()/2, y, false);
     y += titleHeight;
 
@@ -145,15 +145,18 @@ function drawEvents() {
       g.setFontAlign(-1, -1).setFont("6x15");
       let locLines = g.wrapString(event.loc, g.getWidth());
       let locHeight = g.stringMetrics(locLines.join("\n")).height;
-      if (y > locHeight * -1 && y < g.getHeight())
+      if (y < g.getHeight())
         g.drawString(locLines.join("\n"), 0, y, false);
       y += locHeight;
     }
 
+    if (y >= g.getHeight())
+      break;
+
     y += 1;
   }
-
-  maxScrollOffset = (y - scrollOffset - g.getHeight()) * -1;
+  if (y <= g.getHeight())
+    maxScrollOffset = scrollOffset;
 }
 
 
@@ -165,16 +168,12 @@ drawEvents();
 Bangle.setUI("updown", action => {
   switch (action) {
     case -1:  // up
-      if (scrollOffset > maxScrollOffset) {
-        scrollOffset -= 40;
-        if (scrollOffset < maxScrollOffset) { scrollOffset = maxScrollOffset; }
-      }
+      scrollOffset++;
+      if (scrollOffset > maxScrollOffset) scrollOffset = maxScrollOffset;
       break;
     case 1:   // down
-      if (scrollOffset < 0) {
-        scrollOffset += 40;
-        if (scrollOffset > 0) { scrollOffset = 0; }
-      }
+      scrollOffset--;
+      if (scrollOffset < 0) scrollOffset = 0;
       break;
     default:
       // ignore taps
