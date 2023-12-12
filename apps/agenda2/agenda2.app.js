@@ -91,6 +91,18 @@ function drawEvents() {
 
   maxScrollOffset = allEvents.length - 1;
 
+  // up arrow (if not showing first event)
+  if (scrollOffset) {
+    g.setColor(dateColour);
+    g.fillRect(0, 0, g.getWidth(), 7);
+    g.setColor(g.theme.bg);
+    let horizontalCenter = g.getWidth() / 2;
+    g.fillPoly([ horizontalCenter, 0,
+                 horizontalCenter + 7, 7,
+                 horizontalCenter - 7, 7 ]);
+    y += 8;
+  }
+
   for (let idx = scrollOffset; idx < allEvents.length; idx++) {
     let event = allEvents[idx];
 
@@ -110,9 +122,9 @@ function drawEvents() {
     // date
     g.setFont("8x16");
     if (date != prevDate) {
-      g.setFontAlign(1, -1);
+      g.setFontAlign(-1, -1);
       if (y < g.getHeight())
-        g.drawString(date, g.getWidth(), y, false);
+        g.drawString(date, 0, y, false);
       prevDate = date;
     }
 
@@ -127,9 +139,9 @@ function drawEvents() {
       }
     }
     g.setColor(g.theme.fg);
-    g.setFontAlign(-1, -1);
+    g.setFontAlign(1, -1);
     if (y < g.getHeight())
-      g.drawString(time, 0, y, false);
+      g.drawString(time, g.getWidth(), y, false);
     y += 16;
 
     // title
@@ -150,8 +162,17 @@ function drawEvents() {
       y += locHeight;
     }
 
-    if (y >= g.getHeight())
+    if (y >= g.getHeight()) {
+      // more events than fit on screen -> show down arrow
+      g.setColor(dateColour);
+      g.fillRect(0, g.getHeight() - 10, g.getWidth(), g.getHeight());
+      g.setColor(g.theme.bg);
+      let horizontalCenter = g.getWidth() / 2;
+      g.fillPoly([ horizontalCenter, g.getHeight() - 1,
+                   horizontalCenter + 7, g.getHeight() - 7,
+                   horizontalCenter - 7, g.getHeight() - 7 ]);
       break;
+    }
 
     y += 1;
   }
@@ -164,19 +185,16 @@ function drawEvents() {
 getEvents();
 drawEvents();
 
-// scroll (up/down swipes)
-Bangle.setUI("updown", action => {
-  switch (action) {
-    case -1:  // up
-      scrollOffset++;
-      if (scrollOffset > maxScrollOffset) scrollOffset = maxScrollOffset;
-      break;
-    case 1:   // down
-      scrollOffset--;
-      if (scrollOffset < 0) scrollOffset = 0;
-      break;
-    default:
-      // ignore taps
+// scroll (up/down taps)
+Bangle.on('touch', (button, xy) => {
+  if (xy.y >= g.getHeight() / 2) {
+    // scroll down
+    scrollOffset++;
+    if (scrollOffset > maxScrollOffset) scrollOffset = maxScrollOffset;
+  } else {
+    // scroll up
+    scrollOffset--;
+    if (scrollOffset < 0) scrollOffset = 0;
   }
   drawEvents();
 });
