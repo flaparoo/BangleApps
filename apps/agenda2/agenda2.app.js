@@ -3,18 +3,24 @@
  */
 
 const SHOW_DAYS = 3;
+const HOURS_PAST = 3;
 
-require('DateExt');
 require("Font8x16").add(Graphics); 
 
 const COLOUR_GREY          = 0x8410;   // same as: g.setColor(0.5, 0.5, 0.5)
 const COLOUR_GREEN         = 0x07e0;   // same as: g.setColor(0, 1, 0)
 const COLOUR_BLUE          = 0x001f;   // same as: g.setColor(0, 0, 1)
+const COLOUR_YELLOW        = 0xffe0;   // same as: g.setColor(1, 1, 0)
+const COLOUR_DARK_YELLOW   = 0x8400;   // same as: g.setColor(0.5, 0.5, 0)
 
+const eventAreaHeight = g.getHeight() - 10;
 const maxStart = Date.now() + SHOW_DAYS*86400000;
+const minStart = Date.now() - HOURS_PAST*3600000;
 const dateColour = ( g.theme.dark ? COLOUR_GREEN : COLOUR_BLUE );
+const sunColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_DARK_YELLOW );
 
 var allEvents;
+var sunTimes = {};
 var scrollOffset = 0;
 var maxScrollOffset = 0;
 
@@ -36,6 +42,7 @@ function getEvents() {
 
     let ts = new Date(Date.now() + timeToAlarm);
     if (ts > maxStart) continue;
+    if (ts < minStart) continue;
 
     let title = 'Alarm';
     if ("timer" in alarm) title = 'Timer';
@@ -56,6 +63,7 @@ function getEvents() {
     let event = calendar[idx];
 
     if (event.timestamp*1000 > maxStart) continue;
+    if (event.timestamp*1000 < minStart) continue;
 
     let start = new Date(event.timestamp*1000);
     let end = new Date((event.timestamp + event.durationInSeconds)*1000);
@@ -79,15 +87,34 @@ function getEvents() {
 function drawEvents() {
   g.clear(true);
 
+  let y = 0;
+  let prevDate = '';
+  let horizontalCenter = g.getWidth() / 2;
+
+  // sunrise and sunset info
+  if (! scrollOffset) {
+    g.setColor(sunColour);
+    g.setFont("8x16");
+    if ('sunrise' in sunTimes) {
+      g.setFontAlign(-1, -1);
+      g.drawString(require("locale").time(sunTimes.sunrise, 1).trim(), 0, y, false);
+      g.setFontAlign(0, -1);
+      g.drawString('< Sun >', horizontalCenter, y, false);
+      g.setFontAlign(1, -1);
+      g.drawString(require("locale").time(sunTimes.sunset, 1), g.getWidth(), y, false);
+    } else {
+      g.setFontAlign(0, -1);
+      g.drawString('*"My Location" not set*', horizontalCenter, y, false);
+    }
+    y += 16;
+  }
+
   if (! allEvents.length) {
     g.setColor(dateColour).setFontAlign(0, 0).setFont("Vector", 20);
     let msg = g.wrapString('You can relax - there are no upcoming events!', g.getWidth());
-    g.drawString(msg.join("\n"), g.getWidth()/2, g.getHeight()/2, false);
+    g.drawString(msg.join("\n"), horizontalCenter, g.getHeight() / 2, false);
     return;
   }
-
-  let y = 0;
-  let prevDate = '';
 
   maxScrollOffset = allEvents.length - 1;
 
@@ -96,7 +123,6 @@ function drawEvents() {
     g.setColor(dateColour);
     g.fillRect(0, 0, g.getWidth(), 7);
     g.setColor(g.theme.bg);
-    let horizontalCenter = g.getWidth() / 2;
     g.fillPoly([ horizontalCenter, 0,
                  horizontalCenter + 7, 7,
                  horizontalCenter - 7, 7 ]);
@@ -106,7 +132,8 @@ function drawEvents() {
   for (let idx = scrollOffset; idx < allEvents.length; idx++) {
     let event = allEvents[idx];
 
-    let date = event.start.as('T D. C').str;
+    let date = require("locale").dow(event.start, 1) + ' ' +
+               event.start.getDate() + '. ' + require("locale").month(event.start, 1);
 
     // separator
     if (date != prevDate) {
@@ -119,55 +146,55 @@ function drawEvents() {
       y += 2;
     }
 
-    // date
-    g.setFont("8x16");
-    if (date != prevDate) {
-      g.setFontAlign(-1, -1);
-      if (y < g.getHeight())
+    if (y < eventAreaHeight) {
+      // date
+      g.setFont("8x16");
+      if (date != prevDate) {
+        g.setFontAlign(-1, -1);
         g.drawString(date, 0, y, false);
-      prevDate = date;
-    }
-
-    // time
-    let time = '';
-    if (event.allday) {
-      time = 'All-day';
-    } else {
-      time = event.start.as("h:0m").str;
-      if (event.end) {
-        time += ' - ' + event.end.as("h:0m").str;
+        prevDate = date;
       }
-    }
-    g.setColor(g.theme.fg);
-    g.setFontAlign(1, -1);
-    if (y < g.getHeight())
+
+      // time
+      let time = '';
+      if (event.allday) {
+        time = 'All-day';
+      } else {
+        time = require("locale").time(event.start, 1);
+        if (event.end) {
+          time += ' - ' + require("locale").time(event.end, 1);
+        }
+      }
+      g.setColor(g.theme.fg);
+      g.setFontAlign(1, -1);
       g.drawString(time, g.getWidth(), y, false);
-    y += 16;
+
+      y += 16;
+    }
 
     // title
-    g.setFontAlign(0, -1).setFont("Vector", 20);
-    let titleLines = g.wrapString(event.title, g.getWidth());
-    let titleHeight = g.stringMetrics(titleLines.join("\n")).height + 1;
-    if (y < g.getHeight())
-      g.drawString(titleLines.join("\n"), g.getWidth()/2, y, false);
-    y += titleHeight;
+    if (y < eventAreaHeight) {
+      g.setFontAlign(0, -1).setFont("Vector", 20);
+      let titleLines = g.wrapString(event.title, g.getWidth());
+      let titleHeight = g.stringMetrics(titleLines.join("\n")).height + 1;
+      g.drawString(titleLines.join("\n"), horizontalCenter, y, false);
+      y += titleHeight;
+    }
 
     // location
-    if (event.loc) {
-      g.setFontAlign(-1, -1).setFont("6x15");
+    if (event.loc && y < eventAreaHeight) {
+      g.setFontAlign(0, -1).setFont("6x15");
       let locLines = g.wrapString(event.loc, g.getWidth());
       let locHeight = g.stringMetrics(locLines.join("\n")).height;
-      if (y < g.getHeight())
-        g.drawString(locLines.join("\n"), 0, y, false);
+      g.drawString(locLines.join("\n"), horizontalCenter, y, false);
       y += locHeight;
     }
 
-    if (y >= g.getHeight()) {
+    if (y >= eventAreaHeight) {
       // more events than fit on screen -> show down arrow
       g.setColor(dateColour);
       g.fillRect(0, g.getHeight() - 10, g.getWidth(), g.getHeight());
       g.setColor(g.theme.bg);
-      let horizontalCenter = g.getWidth() / 2;
       g.fillPoly([ horizontalCenter, g.getHeight() - 1,
                    horizontalCenter + 7, g.getHeight() - 7,
                    horizontalCenter - 7, g.getHeight() - 7 ]);
@@ -176,12 +203,17 @@ function drawEvents() {
 
     y += 1;
   }
-  if (y <= g.getHeight())
+  if (y <= eventAreaHeight)
     maxScrollOffset = scrollOffset;
 }
 
 
 // initialise
+var mylocation = require("Storage").readJSON("mylocation.json",1)||{};
+if ('lat' in mylocation && 'lon' in mylocation) {
+  var now = new Date(Date.now());
+  sunTimes = require("suncalc").getTimes(now, mylocation.lat, mylocation.lon);
+}
 getEvents();
 drawEvents();
 
