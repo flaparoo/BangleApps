@@ -7,7 +7,6 @@
  *
  */
 
-require('DateExt');
 require("Font8x12").add(Graphics);
 
 const COLOUR_BLACK         = 0x0000;   // same as: g.setColor(0, 0, 0)
@@ -55,10 +54,19 @@ function drawHeader() {
   g.setBgColor(headerBgColour);
   g.clearRect(0, 0, g.getWidth(), 17);
 
-  var now = new Date();
-  var nowUTC = new Date(now + (now.getTimezoneOffset() * 1000 * 60));
+  let now = new Date();
+  let nowUTC = new Date(now + (now.getTimezoneOffset() * 1000 * 60));
+  let dateTimeStr = nowUTC.getDate().toString();
+  if (dateTimeStr.length == 1) dateTimeStr = '0' + dateTimeStr;
+  let hours = nowUTC.getHours().toString();
+  if (hours.length == 1) hours = '0' + hours;
+  dateTimeStr += hours;
+  let minutes = nowUTC.getMinutes().toString();
+  if (minutes.length == 1) minutes = '0' + minutes;
+  dateTimeStr += minutes;
+
   g.setFontAlign(-1, -1).setFont("Vector", 16).setColor(timeColour);
-  g.drawString(nowUTC.as("0D0h0m").str + "Z", 0, 0, true);
+  g.drawString(dateTimeStr + "Z", 0, 0, true);
 
   g.clearRect(g.getWidth() / 2, 0, g.getWidth(), 17);
   g.setFontAlign(1, -1).setFont("8x12").setColor(COLOUR_RED);
@@ -89,7 +97,7 @@ function draw() {
       g.setFont("Vector", 22);
       linesCount = -7;
   }
-  var lines = g.wrapString(METAR, g.getWidth());
+  let lines = g.wrapString(METAR, g.getWidth());
   lines.push('');
   lines = lines.concat(g.wrapString(TAF, g.getWidth()));
   linesCount += lines.length;
@@ -117,8 +125,8 @@ function updateAVWX() {
     if (METARrequest || TAFrequest) { return; }
     if ('fix' in fix && fix.fix != 0) {
       Bangle.setGPSPower(false, APP_NAME);
-      var lat = fix.lat;
-      var long = fix.lon;
+      let lat = fix.lat;
+      let lon = fix.lon;
 
       METAR = 'Requesting METAR...';
       TAF = 'Requesting TAF...';
@@ -126,9 +134,9 @@ function updateAVWX() {
       draw();
 
       // get METAR
-      METARrequest = Bangle.http('https://avwx.rest/api/metar/'+lat+','+long+
+      METARrequest = Bangle.http('https://avwx.rest/api/metar/'+lat+','+lon+
           '?filter=sanitized&onfail=nearest&token='+settings.AVWXtoken).then(data => {
-        var METARjson = JSON.parse(data.resp);
+        let METARjson = JSON.parse(data.resp);
         if ('sanitized' in METARjson) {
           METAR = METARjson.sanitized;
         } else {
@@ -148,9 +156,9 @@ function updateAVWX() {
       });
 
       // get TAF
-      TAFrequest = Bangle.http('https://avwx.rest/api/taf/'+lat+','+long+
+      TAFrequest = Bangle.http('https://avwx.rest/api/taf/'+lat+','+lon+
           '?filter=raw&onfail=nearest&token='+settings.AVWXtoken).then(data => {
-        var TAFjson = JSON.parse(data.resp);
+        let TAFjson = JSON.parse(data.resp);
         if ('raw' in TAFjson) {
           TAF = TAFjson.raw;
         } else {
@@ -176,8 +184,6 @@ function updateAVWX() {
 /*
  * initialise app
  */
-g.clear();
-
 updateAVWX();
 draw();
 
