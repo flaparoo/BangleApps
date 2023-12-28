@@ -203,7 +203,7 @@ function drawEvents() {
 
     y += 1;
   }
-  if (y <= eventAreaHeight)
+  if (y < eventAreaHeight)
     maxScrollOffset = scrollOffset;
 }
 
