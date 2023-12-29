@@ -2,7 +2,7 @@
   "id": "fuzzyclk",
   "name": "Fuzzy Clock",
   "shortName":"Fuzzy Clock",
-  "version":"0.90",
+  "version":"0.91",
   "description": "Tells the time - close enough",
   "icon": "fuzzyclk.png",
   "screenshots": [{ "url": "screenshot.png" },{ "url": "screenshot2.png" },{ "url": "screenshot3.png" },{ "url": "screenshot4.png" }],

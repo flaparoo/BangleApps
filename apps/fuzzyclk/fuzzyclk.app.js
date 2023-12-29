@@ -55,10 +55,11 @@ if (settings.font == 'Gochi') {
 
 
 const numbers = [ 'twelve', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven' ];
+
 const termsExactly = [ 'exactly', 'on the dot', 'precisely', 'bang on', 'spot on', 'right on' ];
 const termsBefore = [ 'just before', 'before', 'coming up to', 'approaching' ];
-const termsApprox = [ 'nearly', 'about', 'approx.', 'roughly', 'around', 'just about', 'more or less', 'close to', 'not far off', 'almost', 'circa' ];
-const termsAfter = [ 'just after', 'after', 'a little over' ];
+const termsApprox = [ 'nearly', 'about', 'approx.', 'roughly', 'around', 'just about', 'more or less', 'close to', 'not far off', 'almost' ];
+const termsAfter = [ 'just after', 'after', 'a little over', 'a bit later than' ];
 
 function pickRandomTerm(terms) {
   return terms[Math.floor(Math.random() * terms.length)];
@@ -77,6 +78,7 @@ function draw() {
   g.clear(true);
 
   let timeStr = "It's ";
+  let maybeInclOClock = true;
 
   if (minutes == 0 || minutes == 15 || minutes == 30 || minutes == 45) {
     timeStr += pickRandomTerm(termsExactly) + ' ';
@@ -105,13 +107,17 @@ function draw() {
     } else {
       timeStr += hourStr + " o'clock";
     }
+    maybeInclOClock = false;
   } else if (minutes < 23) {
-    timeStr += "quarter past " + hourStr + " o'clock";
+    timeStr += "quarter past " + hourStr;
   } else if (minutes < 38) {
-    timeStr += "half past " + hourStr + " o'clock";
+    timeStr += "half past " + hourStr;
   } else {
-    timeStr += "quarter to " + hourStr + " o'clock";
+    timeStr += "quarter to " + hourStr;
   }
+
+  if (maybeInclOClock && Math.random() > 0.7)
+    timeStr += " o'clock";
 
   g.setFontAlign(0, 0);
   if (settings.font == 'Gochi') {
