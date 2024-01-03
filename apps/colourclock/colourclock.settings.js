@@ -4,6 +4,7 @@
   // Load settings
   var settings = Object.assign({
     showSeconds: true,
+    handStyle: 0,      // colourful
   }, require('Storage').readJSON(FILE, true) || {});
 
   function writeSettings() {
@@ -19,6 +20,21 @@
       format: v => v ? "On" : "Off",
       onchange: v => {
         settings.showSeconds = v;
+        writeSettings();
+      }
+    },
+    'Hand style': {
+      value: parseInt(settings.handStyle) || 0,
+      min: 0,
+      max: 1,
+      format: v => {
+        switch (v) {
+          case 0: return 'Colourful';
+          case 1: return 'Theme';
+        }
+      },
+      onchange: v => {
+        settings.handStyle = v;
         writeSettings();
       }
     },

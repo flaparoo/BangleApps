@@ -4,17 +4,18 @@
 
 const COLOUR_GREY          = 0x8410;   // same as: g.setColor(0.5, 0.5, 0.5)
 const COLOUR_RED           = 0xf800;   // same as: g.setColor(1, 0, 0)
-const COLOUR_CYAN          = 0x07ff;   // same as: g.setColor(0, 1, 1)
+const COLOUR_PINK          = 0xf810;   // same as: g.setColor(1, 0, 0.5)
+const COLOUR_ORANGE        = 0xfc00;   // same as: g.setColor(1, 0.5, 0)
 
 const centerX = g.getWidth() / 2;
 const centerY = g.getHeight() / 2;
-const outerRadius = Math.min(centerX, centerY) * 0.95;
-const numbersRadius = Math.min(centerX, centerY) * 0.8;
-const innerRadius = Math.min(centerX, centerY) * 0.62;
+const outerRadius = Math.min(centerX, centerY) * 0.97;
+const numbersRadius = Math.min(centerX, centerY) * 0.84;
+const innerRadius = Math.min(centerX, centerY) * 0.67;
 const twoPI = Math.PI * 2;
 
-const hourHandWidth = 2 * 3;
-const hourHandLength = innerRadius * 0.68;
+const hourHandWidth = 2 * 4;
+const hourHandLength = innerRadius * 0.67;
 const minuteHandWidth  = 2 * 2;
 const minuteHandLength = innerRadius * 0.95;
 const secondHandOffset = 6;
@@ -25,11 +26,12 @@ var drawInterval;
 // read in the settings
 var settings = Object.assign({
   showSeconds: true,
+  handStyle: 0,      // colourful
 }, require('Storage').readJSON('colourclock.json', true) || {});
 
 
 // draw the hour or minute hand
-function drawClockHand(width, length, rotate) {
+function drawClockHand(width, length, rotate, clkval) {
   const halfWidth = width / 2;
   const polygon = [
     -halfWidth, halfWidth,
@@ -49,7 +51,16 @@ function drawClockHand(width, length, rotate) {
     translatedPolygon[i]     = centerX + x * cosRotate + y * sinRotate;
     translatedPolygon[i + 1] = centerY + x * sinRotate - y * cosRotate;
   }
+
+  if (settings.handStyle == 0) {
+    let colour = E.HSBtoRGB(clkval / 60, 1, 1, true);
+    g.setColor(colour[0] / 255, colour[1] / 255, colour[2] / 255);
+  } else {
+    g.setColor(COLOUR_GREY);
+  }
   g.fillPoly(translatedPolygon);
+  g.setColor(g.theme.fg);
+  g.drawPoly(translatedPolygon);
 }
 
 // draw top part of clock (main time, date and UTC)
@@ -65,13 +76,11 @@ function draw() {
 
   // hour hand
   let hoursAngle = (hours + (minutes / 60)) / 12 * twoPI - Math.PI;
-  g.setColor(g.theme.fg);
-  drawClockHand(hourHandWidth, hourHandLength, hoursAngle);
+  drawClockHand(hourHandWidth, hourHandLength, hoursAngle, (hours + (minutes/60)) * 5);
 
   // minute hand
   let minutesAngle = (minutes / 60) * twoPI - Math.PI;
-  g.setColor(COLOUR_GREY);
-  drawClockHand(minuteHandWidth, minuteHandLength, minutesAngle);
+  drawClockHand(minuteHandWidth, minuteHandLength, minutesAngle, (minutes + 30) % 60);
 
   // seconds hand
   if (settings.showSeconds) {
@@ -90,7 +99,7 @@ function draw() {
   g.setColor(g.theme.bg).drawCircle(centerX, centerY, 4);
 
   // day of the week and month
-  g.setFontAlign(0, 0).setFont("Vector", 18).setColor(COLOUR_CYAN);
+  g.setFontAlign(0, 0).setFont("Vector", 18).setColor(g.theme.dark ? COLOUR_ORANGE : COLOUR_PINK);
   g.drawString(
     require("locale").dow(now, 1).toUpperCase() + ' ' + now.getDate(),
     centerX, centerY + 27, false);
