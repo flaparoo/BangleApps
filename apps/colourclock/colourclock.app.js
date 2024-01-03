@@ -102,7 +102,7 @@ function draw() {
   g.setFontAlign(0, 0).setFont("Vector", 18).setColor(g.theme.dark ? COLOUR_ORANGE : COLOUR_PINK);
   g.drawString(
     require("locale").dow(now, 1).toUpperCase() + ' ' + now.getDate(),
-    centerX, centerY + 27, false);
+    centerX, centerY + 28, false);
 }
 
 

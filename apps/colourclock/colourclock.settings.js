@@ -29,7 +29,7 @@
       max: 1,
       format: v => {
         switch (v) {
-          case 0: return 'Colourful';
+          case 0: return 'Colour';
           case 1: return 'Theme';
         }
       },
