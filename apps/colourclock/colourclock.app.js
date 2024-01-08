@@ -80,7 +80,7 @@ function draw() {
 
   // minute hand
   let minutesAngle = (minutes / 60) * twoPI - Math.PI;
-  drawClockHand(minuteHandWidth, minuteHandLength, minutesAngle, (minutes + 30) % 60);
+  drawClockHand(minuteHandWidth, minuteHandLength, minutesAngle, (minutes + 20) % 60);
 
   // seconds hand
   if (settings.showSeconds) {
