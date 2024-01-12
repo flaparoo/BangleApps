@@ -1,5 +1,5 @@
 (function(back) {
-  var FILE = 'avwx.json';
+  var FILE = 'avweather.json';
 
   // Load settings
   var settings = Object.assign({
@@ -12,7 +12,7 @@
 
   // Show the main menu
   E.showMenu({
-    '': { 'title' : 'AVWX' },
+    '': { 'title' : 'AvWeather' },
     '< Back': () => back(),
     'Font': {
       value: parseInt(settings.font) || 0,

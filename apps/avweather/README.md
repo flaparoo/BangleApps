@@ -1,4 +1,4 @@
-# Aviation Weather (AVWX)
+# Aviation Weather (AvWeather)
 
 Shows the latest METAR and TAF for the nearest airport
 

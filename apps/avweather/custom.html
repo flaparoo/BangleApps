@@ -20,7 +20,7 @@
       function onInit(device) {
         // read in existing settings to preserve them during an update
         try {
-          Util.readStorageJSON('avwx.json', currentSettings => {
+          Util.readStorageJSON('avweather.json', currentSettings => {
             if (currentSettings) {
               settings = currentSettings;
               if ('AVWXtoken' in settings) {
@@ -37,7 +37,7 @@
         settings.AVWXtoken = document.getElementById('AVWXtoken').value;
         sendCustomizedApp({
           storage:[
-            { name: "avwx.json", content: JSON.stringify(settings) },
+            { name: "avweather.json", content: JSON.stringify(settings) },
           ]
         });
       });

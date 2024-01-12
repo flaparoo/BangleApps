@@ -1,6 +1,6 @@
 
 /*
- * Aviation Weather (AVWX) - Bangle.js
+ * Aviation Weather (AvWeather) - Bangle.js
  *
  * AVWX doco: https://avwx.docs.apiary.io/#reference/0/metar
  * ex: curl -X GET 'https://avwx.rest/api/metar/-31.95,115.86?token=...
@@ -15,7 +15,7 @@ const COLOUR_RED           = 0xf800;   // same as: g.setColor(1, 0, 0)
 const COLOUR_LIGHT_BLUE    = 0x841f;   // same as: g.setColor(0.5, 0.5, 1)
 const COLOUR_DARK_BLUE     = 0x0010;   // same as: g.setColor(0, 0, 0.5)
 
-const APP_NAME = 'avwx';
+const APP_NAME = 'avweather';
 
 const timeColour = ( g.theme.dark ? COLOUR_DARK_BLUE : COLOUR_LIGHT_BLUE );
 const headerBgColour = ( g.theme.dark ? COLOUR_WHITE : COLOUR_BLACK );
