@@ -1,9 +1,5 @@
-
 /*
  * Aviation Weather (AvWeather) - Bangle.js
- *
- * AVWX doco: https://avwx.docs.apiary.io/#reference/0/metar
- * ex: curl -X GET 'https://avwx.rest/api/metar/-31.95,115.86?token=...
  *
  */
 
@@ -20,10 +16,11 @@ const APP_NAME = 'avweather';
 const timeColour = ( g.theme.dark ? COLOUR_DARK_BLUE : COLOUR_LIGHT_BLUE );
 const headerBgColour = ( g.theme.dark ? COLOUR_WHITE : COLOUR_BLACK );
 
+const avwx = require('avwx');
+
 
 // read in the settings
 var settings = Object.assign({
-  AVWXtoken: '',
   font: 2,  // Large
 }, require('Storage').readJSON(APP_NAME+'.json', true) || {});
 
@@ -107,15 +104,7 @@ function draw() {
 
 // update the METAR info (incl. schedule next update)
 function updateAVWX() {
-  if (! settings.AVWXtoken) {
-    METAR = 'No AVWX API Token defined!';
-    TAF = '';
-    linesCount = 0; scrollLines = 0;
-    draw();
-    return;
-  }
-
-  METAR = '\nGetting GPS fix...';
+  METAR = '\nGetting GPS fix';
   TAF = '';
   linesCount = 0; scrollLines = 0;
   draw();
@@ -123,19 +112,18 @@ function updateAVWX() {
   Bangle.setGPSPower(true, APP_NAME);
   Bangle.on('GPS', fix => {
     if (METARrequest || TAFrequest) { return; }
-    if ('fix' in fix && fix.fix != 0) {
+    if ('fix' in fix && fix.fix != 0 && fix.satellites >= 4) {
       Bangle.setGPSPower(false, APP_NAME);
       let lat = fix.lat;
       let lon = fix.lon;
 
-      METAR = 'Requesting METAR...';
-      TAF = 'Requesting TAF...';
+      METAR = 'Requesting METAR';
+      TAF = 'Requesting TAF';
       linesCount = 0; scrollLines = 0;
       draw();
 
       // get METAR
-      METARrequest = Bangle.http('https://avwx.rest/api/metar/'+lat+','+lon+
-          '?filter=sanitized&onfail=nearest&token='+settings.AVWXtoken).then(data => {
+      METARrequest = avwx.request('metar/'+lat+','+lon, 'filter=sanitized&onfail=nearest', data => {
         let METARjson = JSON.parse(data.resp);
         if ('sanitized' in METARjson) {
           METAR = METARjson.sanitized;
@@ -146,7 +134,7 @@ function updateAVWX() {
         METARrequest = undefined;
         if (! TAFrequest) { updateInProgress = false; }
         draw();
-      }).catch(error => {
+      }, error => {
         console.log(error);
         METAR = 'METAR ERR: ' + error;
         linesCount = 0; scrollLines = 0;
@@ -156,8 +144,7 @@ function updateAVWX() {
       });
 
       // get TAF
-      TAFrequest = Bangle.http('https://avwx.rest/api/taf/'+lat+','+lon+
-          '?filter=raw&onfail=nearest&token='+settings.AVWXtoken).then(data => {
+      TAFrequest = avwx.request('taf/'+lat+','+lon, 'filter=raw&onfail=nearest', data => {
         let TAFjson = JSON.parse(data.resp);
         if ('raw' in TAFjson) {
           TAF = TAFjson.raw;
@@ -168,7 +155,7 @@ function updateAVWX() {
         TAFrequest = undefined;
         if (! METARrequest) { updateInProgress = false; }
         draw();
-      }).catch(error => {
+      }, error => {
         console.log(error);
         TAF = 'TAF ERR: ' + error;
         linesCount = 0; scrollLines = 0;
@@ -214,7 +201,6 @@ setWatch(e => { Bangle.showClock(); }, BTN1);
 
 
 // for debugging:
-//settings.AVWXtoken = 'abc';
 //METAR = 'YAAA 150300Z 17019KT 9999 SCT009 SCT022 BKN100 21/18 Q1010 RMK RF000/0000';
 //TAF = 'YAAA 150213Z 1503/1606 17018KT 9999 FEW010 BKN022 FM150800 15008KT 9999 FEW010 BKN020 FM151200 19006KT 9999 SCT010 BKN016 FM152300 13008KT 9999 BKN020 FM160200 13016KT 9999 BKN025 RMK T 22 22 21 20 Q 1010 1009 1010 1010 TAF3';
 //METARrequest = true;

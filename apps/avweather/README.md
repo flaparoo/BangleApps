@@ -1,13 +1,8 @@
 # Aviation Weather (AvWeather)
 
-Shows the latest METAR and TAF for the nearest airport
+Shows the latest METAR and TAF for the nearest airport.
 
-
-## Requirements
-
-The METAR/TAF information is obtained from [AVWX](https://account.avwx.rest/). You will need an account and generate an API token. The free "Hobby" plan is sufficient, but please consider supporting the AVWX project.
-
-The API token is required during the installation of the app on your Bangle.
+This app depends on the [AVWX module](?id=avwx). Make sure to configure that module after installing this app.
 
 
 ## Settings
