@@ -12,7 +12,7 @@
  * To build the bundle, run the following commands:
  *    npm install esbuild
  *    npm install vanilla-jsoneditor
- *    ./node_modules/.bin/esbuild jsoneditor.js --bundle --outfile=interface-static/jsoneditor-bundle.js
+ *    ./node_modules/.bin/esbuild jsoneditor.js --bundle --outfile=jsoneditor-bundle.js
  *
  */
 
