@@ -125,18 +125,17 @@
           Util.readStorageJSON('hadash.json', currentSettings => {
             if (currentSettings) {
               settings = currentSettings;
+              if ('HAbaseUrl' in settings)
+                document.getElementById('HAbaseUrl').value = settings.HAbaseUrl;
+              if ('HAtoken' in settings)
+                document.getElementById('HAtoken').value = settings.HAtoken;
+              if ('menu' in settings)
+                JSONEditorInstance.update({ text: undefined, json: settings.menu });
             }
           });
         } catch (e) {
           console.log("Failed to read existing settings: "+e);
         }
-
-        if ('HAbaseUrl' in settings)
-          document.getElementById('HAbaseUrl').value = settings.HAbaseUrl;
-        if ('HAtoken' in settings)
-          document.getElementById('HAtoken').value = settings.HAtoken;
-        if ('menu' in settings)
-          JSONEditorInstance.update({ text: undefined, json: settings.menu });
       }
 
       document.getElementById("upload").addEventListener("click", function() {
