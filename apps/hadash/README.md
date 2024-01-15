@@ -10,20 +10,36 @@ automations from your wrist.
 
 ## How It Works
 
-This app uses the REST API to directly interact with HA. You will need to
-create a "long-lived access token", which you will have to configure in this app.
+This app uses the REST API to directly interact with HA (which requires a
+"long-lived access token").
 
-You can then create a menu structure to be displayed on your Bangle, which can
-include:
+You can define a menu structure to be displayed on your Bangle, with the states
+to be queried and services to be called. Menu entries can be:
 
-* show the state of a HA entity
-* call a HA service
+* entry to show the state of a HA entity
+* entry to call a HA service
 * sub-menus, including nested sub-menus
 
 
 ## Configuration
 
-TBD
+After installing the app, use the "interface" page (floppy disk icon) in the
+App Loader to configure it.
+
+Make sure to set the "Home-Assistant API Base URL" (which must include the
+"/api" path, as well - but no slash at the end).
+
+Also create a "long-lived access token" in HA (under the Profile section, right
+at the bottom) and enter it as the "Long-lived access token".
+
+The tricky bit will be to configure your menu structure. You need to have a
+basic understanding of the JSON format. The configuration page uses a JSON
+Editor which will check the syntax and highlight any errors for you. Follow the
+instructions on the page regarding how to configure menus, menu entries and the
+required attributes. It also contains examples.
+
+Once you're happy with the menu structure (and you've entered the base URL and
+access token), click the "Configure / Upload to Bangle" button.
 
 
 ## Author

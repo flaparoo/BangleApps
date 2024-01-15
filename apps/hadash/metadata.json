@@ -10,6 +10,7 @@
   "tags": "tool,online",
   "supports": ["BANGLEJS2"],
   "readme": "README.md",
+  "interface": "interface.html",
   "storage": [
     { "name":"hadash.app.js", "url":"hadash.app.js" },
     { "name":"hadash.img",    "url":"hadash-icon.js", "evaluate":true }
