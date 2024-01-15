@@ -7,12 +7,19 @@ const APP_NAME = 'hadash';
 // Load settings
 var settings = Object.assign({
   menu: [
-    { title: 'Query state 1', type: 'state', id: 'update.home_assistant_core_update' },
-    { title: 'Call service 1', type: 'service', domain: 'persistent_notification', service: 'create', data: '{"message":"test notification","title":"Test"}' },
-    { title: 'Submenu', type: 'menu', data: [
-      { title: 'Query state 2', type: 'state', id: 'update.home_assistant_supervisor_update' },
-      { title: 'Call service 2', type: 'service', domain: 'homeassistant', service: 'restart', data: '' },
-    ], },
+    { type: 'state', title: 'Check for updates', id: 'update.home_assistant_core_update' },
+    { type: 'service', title: 'Create Notification', domain: 'persistent_notification', service: 'create',
+        data: { 'message': 'test notification', 'title': 'Test'} },
+    { type: 'menu', title: 'Sub-menu', data:
+      [
+        { type: 'state', title: 'Check for Supervisor updates', id: 'update.home_assistant_supervisor_update' },
+        { type: 'service', title: 'Restart HA', domain: 'homeassistant', service: 'restart', data: {} }
+      ]
+    },
+    { type: 'service', title: 'Custom Notification', domain: 'persistent_notification', service: 'create',
+        data: { 'title': 'Not via input'},
+        input: { 'message': { options: [], value: 'Pre-filled text' },
+                 'notification_id': { options: [ 123, 456, 136 ], value: 999 } } },
   ],
   HAbaseUrl: '',
   HAtoken: '',
@@ -21,6 +28,7 @@ var settings = Object.assign({
 
 // query an entity state
 function queryState(title, id, level) {
+  E.showMessage('Fetching entity state from HA', { title: title });
   Bangle.http(settings.HAbaseUrl+'/states/'+id, {
     headers: {
       'Authorization': 'Bearer '+settings.HAtoken,
@@ -47,6 +55,7 @@ function queryState(title, id, level) {
 
 // call a service
 function callService(title, domain, service, data, level) {
+  E.showMessage('Calling HA service', { title: title });
   Bangle.http(settings.HAbaseUrl+'/services/'+domain+'/'+service, {
     method: 'POST',
     body: data,
@@ -64,6 +73,60 @@ function callService(title, domain, service, data, level) {
 }
 
 
+// get input data before calling a service
+function getServiceInputData(entry, level) {
+  let serviceInputMenu = {
+    '': {
+      'title': entry.title,
+      'back': () => E.showMenu(menus[level])
+    },
+  };
+  let CBs = {};
+  for (let key in entry.input) {
+    // pre-fill data with default values
+    if ('value' in entry.input[key])
+      entry.data[key] = entry.input[key].value;
+
+    if ('options' in entry.input[key] && entry.input[key].options.length) {
+      // give choice from a selection of options
+      let idx = -1;
+      for (let i in entry.input[key].options) {
+        if (entry.input[key].value == entry.input[key].options[i]) {
+          idx = i;
+        }
+      }
+      if (idx == -1) {
+        idx = entry.input[key].options.push(entry.input[key].value) - 1;
+      }
+      eval('CBs["'+key+'_format"] = function(v) { return entry.input["'+key+'"].options[v]; }');
+      eval('CBs["'+key+'_onchange"] = function(v) { '+
+                                      'entry.input["'+key+'"].value = entry.input["'+key+'"].options[v]; '+
+                                      'getServiceInputData(entry, level);'+
+                                    '}');
+      serviceInputMenu[key] = {
+        value: parseInt(idx),
+        min: 0,
+        max: entry.input[key].options.length - 1,
+        format: CBs[key+'_format'],
+        onchange: CBs[key+'_onchange']
+      };
+
+    } else {
+      // free-form text input
+      eval('CBs["'+key+'_textinput"] = function() { '+
+                              'require("textinput").input({text: entry.input["'+key+'"].value}).then(result => {'+
+                              'entry.input["'+key+'"].value = result; '+
+                              'getServiceInputData(entry, level);'+
+                            '}) }');
+      serviceInputMenu[key] = CBs[key+'_textinput'];
+    }
+  }
+  // menu entry to actually call the service:
+  serviceInputMenu['Call service'] = function() { callService(entry.title, entry.domain, entry.service, entry.data, level); };
+  E.showMenu(serviceInputMenu);
+}
+
+
 // menu hierarchy
 var menus = [];
 
@@ -73,21 +136,56 @@ function addMenuEntries(level, entries) {
   let entryCBs = [];
   for (let i in entries) {
     let entry = entries[i];
+
+    // is there a menu entry title?
+    if (! ('title' in entry) || ! entry.title)
+      entry.title = 'TBD';
+
     switch (entry.type) {
       case 'state':
-        eval('entryCBs['+i+'] = function() { queryState("'+entry.title+'", "'+entry.id+'", '+level+'); }');
+        /*
+         * query entity state
+         */
+        if ('id' in entry && entry.id) {
+          eval('entryCBs['+i+'] = function() { queryState("'+entry.title+'", "'+entry.id+'", '+level+'); }');
+        }
         break;
+
       case 'service':
-        let serviceData = JSON.stringify(entry.data);
-        eval('entryCBs['+i+'] = function() { callService("'+entry.title+'", "'+entry.domain+'", "'+entry.service+
-                                                                              '", '+serviceData+', '+level+'); }');
+        /*
+         * call HA service
+         */
+        if ('domain' in entry && entry.domain && 'service' in entry && entry.service) {
+          if (! ('data' in entry))
+            entry.data = {};
+          if ('input' in entry) {
+            // get input for some data fields first
+            eval('entryCBs['+i+'] = function() { getServiceInputData('+JSON.stringify(entry)+', '+level+'); }');
+
+          } else {
+            // call service straight away
+            let serviceData = JSON.stringify(entry.data);
+            eval('entryCBs['+i+'] = function() { callService("'+entry.title+'", "'+entry.domain+'", "'+entry.service+
+                                                                                  '", '+serviceData+', '+level+'); }');
+          }
+        }
         break;
+
       case 'menu':
+        /*
+         * sub-menu
+         */
         let menuData = JSON.stringify(entry.data);
         eval('entryCBs['+i+'] = function() { showSubMenu('+(level + 1)+', "'+entry.title+'", '+menuData+'); }');
         break;
     }
-    menus[level][entry.title] = entryCBs[i];
+
+    // only attach a call-back to menu entry if it's properly configured
+    if (! entryCBs[i]) {
+      menus[level][entry.title + ' - not correctly configured!'] = {};
+    } else {
+      menus[level][entry.title] = entryCBs[i];
+    }
   }
 }
 
@@ -105,7 +203,9 @@ function showSubMenu(level, title, entries) {
 }
 
 
-// create main menu
+/*
+ * create the main menu
+ */
 menus[0] = {
   '': {
     'title': 'HA-Dash',

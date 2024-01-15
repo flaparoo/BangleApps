@@ -20,6 +20,9 @@ to be queried and services to be called. Menu entries can be:
 * entry to call a HA service
 * sub-menus, including nested sub-menus
 
+Calls to a service can also have optional input for data fields on the Bangle
+itself.
+
 
 ## Configuration
 

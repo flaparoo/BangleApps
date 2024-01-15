@@ -43,7 +43,7 @@
             "domain": "HA Domain", "service": "HA Service",
             "data": { "key": "value" } }
         </pre>
-        The required information to call a HA service can be found in HA
+        <p>The required information to call a HA service can be found in HA
         under the Developer tools -&gt; Services. Use the "Go to YAML Mode"
         function to see the actual names and values. The domain and service
         parts are the 2 parts of the service name which are separated by a dot.
@@ -69,7 +69,30 @@
            device_id: abcd1234
         </pre>
         ... add another "data" key/value pair: <code>"device_id": "abcd1234"</code>.
-        If that doesn't work, list the device (or entity) ID in an array: <code>"device_id": [ "abcd1234" ]</code>
+        If that doesn't work, list the device (or entity) ID in an array: 
+        <code>"device_id": [ "abcd1234" ]</code></p>
+
+        <p>Data fields can also have variable input on the Bangle first. In that
+        case, don't add the key/value pair under "data", but create an "input"
+        object with entries per "data" key:
+        <pre class="code" data-lang="JSON">
+          { "key": { options: [], value: "" } }
+        </pre>
+        If "options" is left empty, the preferred text-input (pick your faviour
+        app - I like the dragboard) is called to allow entering a free-form
+        value. Otherwise, list the allowed values in the "options" array. The
+        "value" is the pre-defined/default value. For example:
+        <pre class="code" data-lang="JSON">
+          { type: 'service', title: 'Custom Notification', domain: 'persistent_notification', service: 'create',
+              data: { 'title': 'Fixed'},
+              input: { 'message': { options: [], value: 'Pre-filled text' },
+                       'notification_id': { options: [ 123, 456, 136 ], value: 999 } } },
+        </pre>
+        In the above example, the "data" will have 3 key/value pairs when the
+        service is called: the "title" is always the same, "message" can be
+        entered via the (free-form) text-input and "notification_id" can be
+        selected from a list of numbers. If the default value is not listed in
+        "options", it will be added to that list.</p>
       </li>
       <li>
         <b>Sub-menu</b>
@@ -115,7 +138,11 @@
               { type: 'state', title: 'Check for Supervisor updates', id: 'update.home_assistant_supervisor_update' },
               { type: 'service', title: 'Restart HA', domain: 'homeassistant', service: 'restart', data: {} }
             ]
-          }
+          },
+          { type: 'service', title: 'Custom Notification', domain: 'persistent_notification', service: 'create',
+              data: { 'title': 'Not via input'},
+              input: { 'message': { options: [], value: 'Pre-filled text' },
+                       'notification_id': { options: [ 123, 456, 136 ], value: 999 } } },
         ]
       };
 
