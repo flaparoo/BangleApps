@@ -45,6 +45,16 @@ Once you're happy with the menu structure (and you've entered the base URL and
 access token), click the "Configure / Upload to Bangle" button.
 
 
+## Security
+
+The "long-lived access token" will be stored unencrypted on your Bangle. This
+would - in theory - mean that if your Bangle gets stolen, the new "owner" would
+have unrestricted access to your Home-Assistant instance (the thief would have
+to be fairly tech-savvy, though). However, I suggest you create a separate
+token exclusively for your Bangle - that way, it's very easy to simply delete
+that token in case your watch is stolen or lost.
+
+
 ## Author
 
 Flaparoo [github](https://github.com/flaparoo)

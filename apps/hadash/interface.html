@@ -76,35 +76,38 @@
         case, don't add the key/value pair under "data", but create an "input"
         object with entries per "data" key:
         <pre class="code" data-lang="JSON">
-          { "key": { options: [], value: "" } }
+          { "key": { "options": [], "value": "", "label": "" } }
         </pre>
         If "options" is left empty, the preferred text-input (pick your faviour
         app - I like the dragboard) is called to allow entering a free-form
         value. Otherwise, list the allowed values in the "options" array. The
-        "value" is the pre-defined/default value. For example:
+        "value" is the pre-defined/default value. The "label" is optional and
+        can be used to override the label for this key (as displayed on the
+        Bangle). For example:
         <pre class="code" data-lang="JSON">
-          { type: 'service', title: 'Custom Notification', domain: 'persistent_notification', service: 'create',
-              data: { 'title': 'Fixed'},
-              input: { 'message': { options: [], value: 'Pre-filled text' },
-                       'notification_id': { options: [ 123, 456, 136 ], value: 999 } } },
+          { "type": "service", "title": "Custom Notification", "domain": "persistent_notification", "service": "create",
+              "data": { "title": "Fixed"},
+              "input": { "message": { "options": [], "value": "Pre-filled text" },
+                         "notification_id": { "options": [ "123", "456", "136" ], "value": "999", "label": "ID" } } },
         </pre>
         In the above example, the "data" will have 3 key/value pairs when the
         service is called: the "title" is always the same, "message" can be
         entered via the (free-form) text-input and "notification_id" can be
-        selected from a list of numbers. If the default value is not listed in
-        "options", it will be added to that list.</p>
+        selected from a list of numbers (however, the prompt will be for "ID"
+        and not "notification_id"). If the default value is not listed in
+        "options" (like "999"), it will be added to that list.</p>
       </li>
       <li>
         <b>Sub-menu</b>
         <pre class="code" data-lang="JSON">
-          { "type": "menu", "title": "Menu entry / sub-menu title", data: ... }
+          { "type": "menu", "title": "Menu entry / sub-menu title", "data": ... }
         </pre>
         The "data" needs to be another array of menu entries. For example:
         <pre class="code" data-lang="JSON">
-          { "type": "menu", "title": "Sub-menu", data:
+          { "type": "menu", "title": "Sub-menu", "data":
             [
               { "type": "state", "title": "Check for Supervisor updates", "id": "update.home_assistant_supervisor_update" },
-              { "type": "service", "title": "Restart HA", "domain": "homeassistant", "service": "restart", data: {} }
+              { "type": "service", "title": "Restart HA", "domain": "homeassistant", "service": "restart", "data": {} }
             ]
           }
         </pre>
@@ -142,7 +145,7 @@
           { type: 'service', title: 'Custom Notification', domain: 'persistent_notification', service: 'create',
               data: { 'title': 'Not via input'},
               input: { 'message': { options: [], value: 'Pre-filled text' },
-                       'notification_id': { options: [ 123, 456, 136 ], value: 999 } } },
+                       'notification_id': { options: [ 123, 456, 136 ], value: 999, label: "ID" } } },
         ]
       };
 

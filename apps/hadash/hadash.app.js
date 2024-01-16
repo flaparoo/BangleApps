@@ -19,7 +19,7 @@ var settings = Object.assign({
     { type: 'service', title: 'Custom Notification', domain: 'persistent_notification', service: 'create',
         data: { 'title': 'Not via input'},
         input: { 'message': { options: [], value: 'Pre-filled text' },
-                 'notification_id': { options: [ 123, 456, 136 ], value: 999 } } },
+                 'notification_id': { options: [ 123, 456, 136 ], value: 999, label: "ID" } } },
   ],
   HAbaseUrl: '',
   HAtoken: '',
@@ -87,6 +87,8 @@ function getServiceInputData(entry, level) {
     if ('value' in entry.input[key])
       entry.data[key] = entry.input[key].value;
 
+    let label = ( ('label' in entry.input[key] && entry.input[key].label) ? entry.input[key].label : key );
+
     if ('options' in entry.input[key] && entry.input[key].options.length) {
       // give choice from a selection of options
       let idx = -1;
@@ -103,7 +105,7 @@ function getServiceInputData(entry, level) {
                                       'entry.input["'+key+'"].value = entry.input["'+key+'"].options[v]; '+
                                       'getServiceInputData(entry, level);'+
                                     '}');
-      serviceInputMenu[key] = {
+      serviceInputMenu[label] = {
         value: parseInt(idx),
         min: 0,
         max: entry.input[key].options.length - 1,
@@ -118,7 +120,7 @@ function getServiceInputData(entry, level) {
                               'entry.input["'+key+'"].value = result; '+
                               'getServiceInputData(entry, level);'+
                             '}) }');
-      serviceInputMenu[key] = CBs[key+'_textinput'];
+      serviceInputMenu[label] = CBs[key+'_textinput'];
     }
   }
   // menu entry to actually call the service:
