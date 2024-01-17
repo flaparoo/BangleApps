@@ -75,8 +75,6 @@ function draw() {
     hours += 1;
   let hourStr = numbers[hours % 12];
 
-  g.clear(true);
-
   let timeStr = "It's ";
   let maybeInclOClock = true;
 
@@ -118,6 +116,8 @@ function draw() {
 
   if (maybeInclOClock && Math.random() > 0.7)
     timeStr += " o'clock";
+
+  g.clear(true);
 
   g.setFontAlign(0, 0);
   if (settings.font == 'Gochi') {
