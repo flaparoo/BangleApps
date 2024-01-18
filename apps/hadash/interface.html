@@ -13,6 +13,9 @@
     <div class="form-group">
       <label class="form-label" for="HAtoken">Long-lived access token:</label>
       <input class="form-input" type="text" id="HAtoken" placeholder="Your Long-lived Access Token" />
+      <div>
+        <small class="text-muted">It's recommended to create a dedicated token for your Bangle.</small>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -28,20 +31,34 @@
       <li>
         <b>Query an Entity State</b>
         <pre class="code" data-lang="JSON">
-          { "type": "state", "title": "Menu entry title", "id": "HA Entity ID" }
+{
+  "type": "state",
+  "title": "Menu entry title",
+  "id": "HA Entity ID"
+}
         </pre>
         The required Entity ID can be looked up in HA under Settings -&gt;
         Devices &amp; Services -&gt; Entities. For example:
         <pre class="code" data-lang="JSON">
-          { "type": "state", "title": "Check for updates", "id": "update.home_assistant_core_update" }
+{
+  "type": "state",
+  "title": "Check for updates",
+  "id": "update.home_assistant_core_update"
+}
         </pre>
       </li>
       <li>
         <b>Call a HA service</b>
         <pre class="code" data-lang="JSON">
-          { "type": "service", "title": "Menu entry title",
-            "domain": "HA Domain", "service": "HA Service",
-            "data": { "key": "value" } }
+{
+  "type": "service",
+  "title": "Menu entry title",
+  "domain": "HA Domain",
+  "service": "HA Service",
+  "data": {
+    "key": "value"
+  }
+}
         </pre>
         <p>The required information to call a HA service can be found in HA
         under the Developer tools -&gt; Services. Use the "Go to YAML Mode"
@@ -50,45 +67,78 @@
         Any (optional) data key/value pairs can be added under the "data"
         field. For example, here's a service call YAML:
         <pre class="code" data-lang="YAML">
-          service: persistent_notification.create
-          data:
-            message: test Notification
-            title: Test
+service: persistent_notification.create
+data:
+  message: test Notification
+  title: Test
         </pre>
         The resulting menu entry (JSON object) should be:
         <pre class="code" data-lang="JSON">
-          { "type": "service", "title": "Create Notification",
-            "domain": "persistent_notification", "service": "create",
-            "data": { "message": "test Notification", "title": "Test" } }
+{
+  "type": "service",
+  "title": "Create Notification",
+  "domain": "persistent_notification",
+  "service": "create",
+  "data": {
+    "message": "test Notification",
+    "title": "Test"
+  }
+}
         </pre>
         If the service requires a target, include the
         "entity_id"/"device_id"/etc. (listed under "target:") also as "data"
         key/value pairs. For example, if the YAML also includes:
         <pre class="code" data-lang="YAML">
-          target:
-           device_id: abcd1234
+target:
+  device_id: abcd1234
         </pre>
         ... add another "data" key/value pair: <code>"device_id": "abcd1234"</code>.
         If that doesn't work, list the device (or entity) ID in an array: 
         <code>"device_id": [ "abcd1234" ]</code></p>
 
-        <p>Data fields can also have variable input on the Bangle first. In that
+        <p>Data fields can also have variable input on the Bangle. In that
         case, don't add the key/value pair under "data", but create an "input"
         object with entries per "data" key:
         <pre class="code" data-lang="JSON">
-          { "key": { "options": [], "value": "", "label": "" } }
+{
+  "key": {
+    "options": [],
+    "value": "",
+    "label": ""
+  }
+}
         </pre>
-        If "options" is left empty, the preferred text-input (pick your faviour
-        app - I like the dragboard) is called to allow entering a free-form
-        value. Otherwise, list the allowed values in the "options" array. The
-        "value" is the pre-defined/default value. The "label" is optional and
-        can be used to override the label for this key (as displayed on the
-        Bangle). For example:
+        If "options" is left empty, the preferred text-input (pick your
+        favourite app - I like the dragboard) is called to allow entering a
+        free-form value. Otherwise, list the allowed values in the "options"
+        array. The "value" is the pre-defined/default value. The "label" is
+        optional and can be used to override the label for this key (as
+        displayed on the Bangle). For example:
         <pre class="code" data-lang="JSON">
-          { "type": "service", "title": "Custom Notification", "domain": "persistent_notification", "service": "create",
-              "data": { "title": "Fixed"},
-              "input": { "message": { "options": [], "value": "Pre-filled text" },
-                         "notification_id": { "options": [ "123", "456", "136" ], "value": "999", "label": "ID" } } },
+{
+  "type": "service",
+  "title": "Custom Notification",
+  "domain": "persistent_notification",
+  "service": "create",
+  "data": {
+    "title": "Fixed"
+  },
+  "input": {
+    "message": {
+      "options": [],
+      "value": "Pre-filled text"
+    },
+    "notification_id": {
+      "options": [
+        "123",
+        "456",
+        "136"
+      ],
+      "value": "999",
+      "label": "ID"
+    }
+  }
+}
         </pre>
         In the above example, the "data" will have 3 key/value pairs when the
         service is called: the "title" is always the same, "message" can be
@@ -100,17 +150,35 @@
       <li>
         <b>Sub-menu</b>
         <pre class="code" data-lang="JSON">
-          { "type": "menu", "title": "Menu entry / sub-menu title", "data": ... }
+{
+  "type": "menu",
+  "title": "Menu entry / sub-menu title",
+  "data": []
+}
         </pre>
         The "data" needs to be another array of menu entries. For example:
         <pre class="code" data-lang="JSON">
-          { "type": "menu", "title": "Sub-menu", "data":
-            [
-              { "type": "state", "title": "Check for Supervisor updates", "id": "update.home_assistant_supervisor_update" },
-              { "type": "service", "title": "Restart HA", "domain": "homeassistant", "service": "restart", "data": {} }
-            ]
-          }
+{
+  "type": "menu",
+  "title": "Sub-menu",
+  "data": [
+    {
+      "type": "state",
+      "title": "Check for Supervisor updates",
+      "id": "update.home_assistant_supervisor_update"
+    },
+    {
+      "type": "service",
+      "title": "Restart HA",
+      "domain": "homeassistant",
+      "service": "restart",
+      "data": {}
+    }
+  ]
+}
         </pre>
+        Sub-menus can contain other sub-menus, so you can have multiple levels
+        of nested menus.
       </li>
     </ul>
 
@@ -118,9 +186,9 @@
 
     <div class="divider"></div>
 
-    <button id="upload" class="btn btn-primary">Configure / Upload to Bangle</button>
-
     <p><div id="status"></div></p>
+
+    <button id="upload" class="btn btn-primary">Configure / Upload to Bangle</button>
 
 
     <script>
