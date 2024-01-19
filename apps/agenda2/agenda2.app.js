@@ -3,7 +3,7 @@
  */
 
 const SHOW_DAYS = 3;
-const HOURS_PAST = 3;
+const HOURS_PAST = 2;
 
 require("Font8x16").add(Graphics); 
 
@@ -11,13 +11,13 @@ const COLOUR_GREY          = 0x8410;   // same as: g.setColor(0.5, 0.5, 0.5)
 const COLOUR_GREEN         = 0x07e0;   // same as: g.setColor(0, 1, 0)
 const COLOUR_BLUE          = 0x001f;   // same as: g.setColor(0, 0, 1)
 const COLOUR_YELLOW        = 0xffe0;   // same as: g.setColor(1, 1, 0)
-const COLOUR_DARK_YELLOW   = 0x8400;   // same as: g.setColor(0.5, 0.5, 0)
+const COLOUR_PINK          = 0xf810;   // same as: g.setColor(1, 0, 0.5)
 
 const eventAreaHeight = g.getHeight() - 10;
-const maxStart = Date.now() + SHOW_DAYS*86400000;
-const minStart = Date.now() - HOURS_PAST*3600000;
+const maxStart = Date.now() + SHOW_DAYS*86400000;  // in ms
+const minEnd = Date.now() - HOURS_PAST*3600000;    // in ms
 const dateColour = ( g.theme.dark ? COLOUR_GREEN : COLOUR_BLUE );
-const sunColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_DARK_YELLOW );
+const sunColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_PINK );
 
 var allEvents;
 var sunTimes = {};
@@ -25,6 +25,9 @@ var mainListView = [];
 var detailsView = [];
 
 
+/*
+ * collect all events (from all sources)
+ */
 function getEvents() {
   allEvents = [];
 
@@ -42,7 +45,7 @@ function getEvents() {
 
     let ts = new Date(Date.now() + timeToAlarm);
     if (ts > maxStart) continue;
-    if (ts < minStart) continue;
+    if (ts < minEnd) continue;
 
     let title = 'Alarm';
     if ("timer" in alarm) title = 'Timer';
@@ -52,7 +55,7 @@ function getEvents() {
       'start': ts,
       'end': undefined,
       'title': title,
-      'loc': '',
+      'location': '',
       'allday': false
     });
   }
@@ -61,15 +64,17 @@ function getEvents() {
   var calendar = require("Storage").readJSON("android.calendar.json",true)||[];
   for (let idx in calendar) {
     let event = calendar[idx];
+    let msStart = event.timestamp * 1000;
+    let msEnd = (event.timestamp + event.durationInSeconds) * 1000;
 
-    if (event.timestamp*1000 > maxStart) continue;
-    if (event.timestamp*1000 < minStart) continue;
+    if (msStart > maxStart) continue;
+    if (msEnd < minEnd) continue;
 
     allEvents.push({
-      'start': new Date(event.timestamp*1000),
-      'end': new Date((event.timestamp + event.durationInSeconds)*1000),
+      'start': new Date(msStart),
+      'end': new Date(msEnd),
       'title': event.title,
-      'loc': event.location,
+      'location': event.location,
       'description': event.description,
       'calName': event.calName,
       'allday': event.allDay
@@ -81,6 +86,9 @@ function getEvents() {
 }
 
 
+/*
+ * build the array of lines for the main view
+ */
 function buildMainView() {
   // first line is sunrise/sunset info
   mainListView.push({ t: 'sol' });
@@ -101,6 +109,7 @@ function buildMainView() {
   for (let eventIdx in allEvents) {
     let event = allEvents[eventIdx];
 
+    // date + time line
     let date = require("locale").dow(event.start, 1) + ' ' +
                event.start.getDate() + '. ' + require("locale").month(event.start, 1);
     let time;
@@ -112,8 +121,6 @@ function buildMainView() {
         time += ' - ' + require("locale").time(event.end, 1).trim();
       }
     }
-
-    // date + time line
     mainListView.push({ t: 'datetime', i: eventIdx,
       date: (date != prevDate ? date : ''),
       time: time });
@@ -121,30 +128,31 @@ function buildMainView() {
 
     // title lines
     g.setFont("Vector", 20);
-    let titleLines = g.wrapString(event.title, g.getWidth());
-    for (let line of titleLines) {
+    for (let line of g.wrapString(event.title, g.getWidth()))
       mainListView.push({ t: 'title', i: eventIdx, title: line });
-    }
 
-    // location
-    if (event.loc) {
+    // location (reduced to single line, if required)
+    if (event.location) {
       g.setFont("6x15");
-      var loc = event.loc;
-      var locWidth = g.stringMetrics(loc).width;
+      var location = event.location;
+      var locWidth = g.stringMetrics(location).width;
       var clipped = false;
       while (locWidth > (g.getWidth() - 7)) {
-        loc = loc.slice(0, -1);
-        locWidth = g.stringMetrics(loc).width;
+        location = location.slice(0, -1);
+        locWidth = g.stringMetrics(location).width;
         clipped = true;
       }
       if (clipped)
-        loc += '...';
-      mainListView.push({ t: 'loc', i: eventIdx, loc: loc });
+        location += '...';
+      mainListView.push({ t: 'location', i: eventIdx, location: location });
     }
   }
 }
 
 
+/*
+ * draw a line from the main view
+ */
 function drawMainViewLine(idx, rect) {
   let line = mainListView[idx];
   let horizontalCenter = rect.x + (rect.w / 2);
@@ -158,12 +166,14 @@ function drawMainViewLine(idx, rect) {
       // sunrise and sunset info
       g.setColor(sunColour).setFont("8x16");
       if ('sunrise' in sunTimes) {
+        g.drawImage(atob("FBSBAAAAAAAAAAAABgAA8AAfgAAAAAAAAGAABgAYYYDAMAQCAB+AA/gAP8A//8H/+AAAAAAA"),
+                    rect.x, rect.y);
         g.setFontAlign(-1, -1);
-        g.drawString(require("locale").time(sunTimes.sunrise, 1).trim(), rect.x, rect.y, false);
-        g.setFontAlign(0, -1);
-        g.drawString('< Daylight >', horizontalCenter, rect.y + 2, false);
+        g.drawString(require("locale").time(sunTimes.sunrise, 1).trim(), rect.x + 23, rect.y, false);
+        g.drawImage(atob("FBSBAAAAAAAAAAAAH4AA8AAGAAAAAAAAAGAABgAYYYDAMAQCAB+AA/gAP8A//8H/+AAAAAAA"),
+                    rightAlign - 20, rect.y);
         g.setFontAlign(1, -1);
-        g.drawString(require("locale").time(sunTimes.sunset, 1), rightAlign, rect.y + 4, false);
+        g.drawString(require("locale").time(sunTimes.sunset, 1), rightAlign - 23, rect.y + 5, false);
       } else {
         g.setFontAlign(0, -1);
         g.drawString('*"My Location" not set*', horizontalCenter, rect.y + 2, false);
@@ -188,15 +198,13 @@ function drawMainViewLine(idx, rect) {
       break;
 
     case 'title':
-      // title line
       g.setColor(g.theme.fg).setFontAlign(0, -1).setFont("Vector", 20);
       g.drawString(line.title, horizontalCenter, rect.y, false);
       break;
 
-    case 'loc':
-      // location
+    case 'location':
       g.setColor(g.theme.fg).setFontAlign(0, -1).setFont("6x15");
-      g.drawString(line.loc, horizontalCenter, rect.y + 2, false);
+      g.drawString(line.location, horizontalCenter, rect.y + 2, false);
       break;
 
     default:
@@ -205,8 +213,10 @@ function drawMainViewLine(idx, rect) {
 }
 
 
+/*
+ * show the scroller for the main view
+ */
 function showMainView() {
-  // show events in scroller
   E.showScroller({
     h: 20,
     c: mainListView.length,
@@ -219,6 +229,9 @@ function showMainView() {
 }
 
 
+/*
+ * draw a line from the details view
+ */
 function drawDetailsViewLine(idx, rect) {
   let line = detailsView[idx];
   let horizontalCenter = rect.x + (rect.w / 2);
@@ -257,6 +270,9 @@ function drawDetailsViewLine(idx, rect) {
 }
 
 
+/*
+ * build the array of lines for the details view and show the scroller
+ */
 function showEventDetails(eventIdx) {
   let event = allEvents[eventIdx];
 
@@ -264,6 +280,7 @@ function showEventDetails(eventIdx) {
 
   detailsView = [];
 
+  // title lines
   detailsView.push({ t: 'title', title: '' });
   for (let line of g.wrapString(event.title, g.getWidth()))
     detailsView.push({ t: 'title', title: line });
@@ -271,6 +288,7 @@ function showEventDetails(eventIdx) {
 
   detailsView.push({ t: 'empty' });
 
+  // date + time
   let date = require("locale").dow(event.start, 1) + ', ' +
              event.start.getDate() + '. ' + require("locale").month(event.start, 1) +
              ' ' + event.start.getFullYear();
@@ -287,13 +305,15 @@ function showEventDetails(eventIdx) {
 
   detailsView.push({ t: 'empty' });
 
-  if (event.loc) {
+  // location lines
+  if (event.location) {
     detailsView.push({ t: 'heading', line: 'Location:' });
-    for (let line of g.wrapString(event.loc, g.getWidth()))
+    for (let line of g.wrapString(event.location, g.getWidth()))
       detailsView.push({ t: 'left', line: line });
     detailsView.push({ t: 'empty' });
   }
 
+  // description lines
   if (event.description) {
     detailsView.push({ t: 'heading', line: 'Description:' });
     for (let line of g.wrapString(event.description, g.getWidth()))
@@ -301,12 +321,14 @@ function showEventDetails(eventIdx) {
     detailsView.push({ t: 'empty' });
   }
 
+  // from which calendar
   if (event.calName) {
     detailsView.push({ t: 'heading', line: 'From Calendar:' });
     detailsView.push({ t: 'left', line: event.calName });
     detailsView.push({ t: 'empty' });
   }
 
+  // back "button"
   detailsView.push({ t: 'center', line: '< Back' });
   detailsView.push({ t: 'empty' });
 
