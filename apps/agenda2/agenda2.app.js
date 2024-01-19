@@ -21,7 +21,8 @@ const sunColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_DARK_YELLOW );
 
 var allEvents;
 var sunTimes = {};
-var lines = [];
+var mainListView = [];
+var detailsView = [];
 
 
 function getEvents() {
@@ -64,17 +65,14 @@ function getEvents() {
     if (event.timestamp*1000 > maxStart) continue;
     if (event.timestamp*1000 < minStart) continue;
 
-    let start = new Date(event.timestamp*1000);
-    let end = new Date((event.timestamp + event.durationInSeconds)*1000);
-    let title = event.title;
-    let loc = event.location;
-    let allday = event.allDay;
     allEvents.push({
-      'start': start,
-      'end': end,
-      'title': title,
-      'loc': loc,
-      'allday': allday
+      'start': new Date(event.timestamp*1000),
+      'end': new Date((event.timestamp + event.durationInSeconds)*1000),
+      'title': event.title,
+      'loc': event.location,
+      'description': event.description,
+      'calName': event.calName,
+      'allday': event.allDay
     });
   }
 
@@ -83,67 +81,72 @@ function getEvents() {
 }
 
 
-function buildLines() {
+function buildMainView() {
   // first line is sunrise/sunset info
-  lines.push({ t: 'sol' });
+  mainListView.push({ t: 'sol' });
 
   // in case there are no upcoming events
   if (! allEvents.length) {
-    lines.push({ t: 'empty' });
-    lines.push({ t: 'empty' });
-    lines.push({ t: 'title', title: 'You can relax!' });
-    lines.push({ t: 'title', title: '-' });
-    lines.push({ t: 'title', title: 'There are no' });
-    lines.push({ t: 'title', title: 'upcoming events' });
+    mainListView.push({ t: 'empty' });
+    mainListView.push({ t: 'empty' });
+    mainListView.push({ t: 'title', title: 'You can relax!' });
+    mainListView.push({ t: 'title', title: '-' });
+    mainListView.push({ t: 'title', title: 'There are no' });
+    mainListView.push({ t: 'title', title: 'upcoming events' });
     return;
   }
 
   // loop all events
   let prevDate = '';
-  for (let event of allEvents) {
+  for (let eventIdx in allEvents) {
+    let event = allEvents[eventIdx];
+
     let date = require("locale").dow(event.start, 1) + ' ' +
                event.start.getDate() + '. ' + require("locale").month(event.start, 1);
     let time;
     if (event.allday) {
       time = 'All-day';
     } else {
-      time = require("locale").time(event.start, 1);
+      time = require("locale").time(event.start, 1).trim();
       if (event.end) {
-        time += ' - ' + require("locale").time(event.end, 1);
+        time += ' - ' + require("locale").time(event.end, 1).trim();
       }
     }
 
     // date + time line
-    lines.push({ t: 'datetime', date: (date != prevDate ? date : ''), time: time });
+    mainListView.push({ t: 'datetime', i: eventIdx,
+      date: (date != prevDate ? date : ''),
+      time: time });
     prevDate = date;
 
     // title lines
     g.setFont("Vector", 20);
     let titleLines = g.wrapString(event.title, g.getWidth());
     for (let line of titleLines) {
-      lines.push({ t: 'title', title: line });
+      mainListView.push({ t: 'title', i: eventIdx, title: line });
     }
 
     // location
     if (event.loc) {
       g.setFont("6x15");
-      var locWidth = g.stringMetrics(event.loc).width;
+      var loc = event.loc;
+      var locWidth = g.stringMetrics(loc).width;
       var clipped = false;
       while (locWidth > (g.getWidth() - 7)) {
-        event.loc = event.loc.slice(0, -1);
-        locWidth = g.stringMetrics(event.loc).width;
+        loc = loc.slice(0, -1);
+        locWidth = g.stringMetrics(loc).width;
         clipped = true;
       }
       if (clipped)
-        event.loc += '...';
-      lines.push({ t: 'loc', loc: event.loc });
+        loc += '...';
+      mainListView.push({ t: 'loc', i: eventIdx, loc: loc });
     }
   }
 }
 
 
-function drawLine(idx, rect) {
-  let line = lines[idx];
+function drawMainViewLine(idx, rect) {
+  let line = mainListView[idx];
   let horizontalCenter = rect.x + (rect.w / 2);
   let rightAlign = rect.x + rect.w;
 
@@ -197,30 +200,142 @@ function drawLine(idx, rect) {
       break;
 
     default:
-      console.log('Unknown line type: '+line.t);
+      console.log('Unknown main view line type: '+line.t);
   }
 }
 
 
-// initialise
+function showMainView() {
+  // show events in scroller
+  E.showScroller({
+    h: 20,
+    c: mainListView.length,
+    draw: drawMainViewLine,
+    select: (idx, touch) => {
+      if ('i' in mainListView[idx])
+        showEventDetails(mainListView[idx].i);
+    }
+  });
+}
+
+
+function drawDetailsViewLine(idx, rect) {
+  let line = detailsView[idx];
+  let horizontalCenter = rect.x + (rect.w / 2);
+  let rightAlign = rect.x + rect.w;
+
+  g.setFont("8x16");
+
+  switch (line.t) {
+    case 'empty':
+      break;
+
+    case 'title':
+      g.setBgColor(g.theme.bg2).clearRect(rect);
+      g.setColor(g.theme.fg).setFontAlign(0, -1);
+      g.drawString(line.title, horizontalCenter, rect.y, false);
+      break;
+
+    case 'heading':
+      g.setColor(dateColour).setFontAlign(-1, -1);
+      g.drawString(line.line, rect.x, rect.y, false);
+      break;
+
+    case 'left':
+      g.setColor(g.theme.fg).setFontAlign(-1, -1);
+      g.drawString(line.line, rect.x, rect.y, false);
+      break;
+
+    case 'center':
+      g.setColor(g.theme.fg).setFontAlign(0, -1);
+      g.drawString(line.line, horizontalCenter, rect.y, false);
+      break;
+
+    default:
+      console.log('Unknown details view line type: '+line.t);
+  }
+}
+
+
+function showEventDetails(eventIdx) {
+  let event = allEvents[eventIdx];
+
+  g.setFont("8x16");
+
+  detailsView = [];
+
+  detailsView.push({ t: 'title', title: '' });
+  for (let line of g.wrapString(event.title, g.getWidth()))
+    detailsView.push({ t: 'title', title: line });
+  detailsView.push({ t: 'title', title: '' });
+
+  detailsView.push({ t: 'empty' });
+
+  let date = require("locale").dow(event.start, 1) + ', ' +
+             event.start.getDate() + '. ' + require("locale").month(event.start, 1) +
+             ' ' + event.start.getFullYear();
+  detailsView.push({ t: 'center', line: date });
+  if (event.allday) {
+    detailsView.push({ t: 'center', line: 'All-day' });
+  } else {
+    let time = require("locale").time(event.start, 1).trim();
+    if (event.end) {
+      time += ' - ' + require("locale").time(event.end, 1).trim();
+    }
+    detailsView.push({ t: 'center', line: time});
+  }
+
+  detailsView.push({ t: 'empty' });
+
+  if (event.loc) {
+    detailsView.push({ t: 'heading', line: 'Location:' });
+    for (let line of g.wrapString(event.loc, g.getWidth()))
+      detailsView.push({ t: 'left', line: line });
+    detailsView.push({ t: 'empty' });
+  }
+
+  if (event.description) {
+    detailsView.push({ t: 'heading', line: 'Description:' });
+    for (let line of g.wrapString(event.description, g.getWidth()))
+      detailsView.push({ t: 'left', line: line });
+    detailsView.push({ t: 'empty' });
+  }
+
+  if (event.calName) {
+    detailsView.push({ t: 'heading', line: 'From Calendar:' });
+    detailsView.push({ t: 'left', line: event.calName });
+    detailsView.push({ t: 'empty' });
+  }
+
+  detailsView.push({ t: 'center', line: '< Back' });
+  detailsView.push({ t: 'empty' });
+
+
+  // show details in scroller
+  E.showScroller({
+    h: 16,
+    c: detailsView.length,
+    draw: drawDetailsViewLine,
+    select: (idx, touch) => {
+      if (idx >= detailsView.length - 3)
+        showMainView();
+    },
+    back: () => showMainView()
+  });
+}
+
+
+/*
+ * initialise
+ */
 var mylocation = require("Storage").readJSON("mylocation.json",1)||{};
 if ('lat' in mylocation && 'lon' in mylocation) {
   var now = new Date(Date.now());
   sunTimes = require("suncalc").getTimes(now, mylocation.lat, mylocation.lon);
 }
 getEvents();
-buildLines();
-
-// show events in scroller
-E.showScroller({
-  h: 20,
-  c: lines.length,
-  draw: drawLine,
-  select: (idx, touch) => {
-    // do nothing for any tap
-  },
-  //back: () => load()
-});
+buildMainView();
+showMainView();
 
 // exit on button press
 setWatch(e => { Bangle.showClock(); }, BTN1);

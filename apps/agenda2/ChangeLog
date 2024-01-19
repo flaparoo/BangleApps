@@ -3,3 +3,4 @@
 0.92: incl. sunrise/set; ignore past events; internationalisation; bug fixes
 0.93: fixed minor bug
 0.94: refactored scolling (to use E.showScroller)
+0.95: added details view

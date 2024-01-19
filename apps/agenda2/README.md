@@ -6,6 +6,10 @@ as well as alarms/timers/etc.
 It also shows the sun-rise and sun-set (only once at the start of the list).
 
 ![](screenshot.png)
+![](screenshot3.png)
+
+Tap on an event to see the details:
+
 ![](screenshot2.png)
 
 
