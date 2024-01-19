@@ -2,3 +2,4 @@
 0.91: scroll 1 event at a time
 0.92: incl. sunrise/set; ignore past events; internationalisation; bug fixes
 0.93: fixed minor bug
+0.94: refactored scolling (to use E.showScroller)
