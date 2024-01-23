@@ -25,6 +25,15 @@ var mainListView = [];
 var detailsView = [];
 
 
+// remove any special characters (ie. unicode)
+function removeSpecialStrings(s) {
+  s = JSON.stringify(s);
+  s = s.replace(/\\x[0-9a-fA-F][0-9a-fA-F]/g, '');
+  s = s.replace(/\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]/g, '');
+  return JSON.parse(s);
+}
+
+
 /*
  * collect all events (from all sources)
  */
@@ -73,10 +82,10 @@ function getEvents() {
     allEvents.push({
       'start': new Date(msStart),
       'end': new Date(msEnd),
-      'title': event.title,
-      'location': event.location,
-      'description': event.description,
-      'calName': event.calName,
+      'title': removeSpecialStrings(event.title),
+      'location': removeSpecialStrings(event.location),
+      'description': removeSpecialStrings(event.description),
+      'calName': removeSpecialStrings(event.calName),
       'allday': event.allDay
     });
   }
