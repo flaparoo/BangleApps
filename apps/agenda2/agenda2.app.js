@@ -30,7 +30,8 @@ function removeSpecialStrings(s) {
   s = JSON.stringify(s);
   s = s.replace(/\\x[0-9a-fA-F][0-9a-fA-F]/g, '');
   s = s.replace(/\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]/g, '');
-  return JSON.parse(s);
+  s = JSON.parse(s);
+  return s.trim();
 }
 
 

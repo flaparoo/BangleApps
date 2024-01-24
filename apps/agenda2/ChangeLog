@@ -6,3 +6,4 @@
 0.95: added details view
 0.96: icons for sunrise/set; better "exclude past events" logic; code clean-up
 0.961: handle (remove) unicode characters (which cause the watch to lock up)
+0.962: trim fields
