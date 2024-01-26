@@ -7,3 +7,4 @@
 0.96: icons for sunrise/set; better "exclude past events" logic; code clean-up
 0.961: handle (remove) unicode characters (which cause the watch to lock up)
 0.962: trim fields
+0.963: remove weird Google meet header line (that causes the Bangle to lock up)

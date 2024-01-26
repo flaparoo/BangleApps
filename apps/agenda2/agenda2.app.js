@@ -27,10 +27,14 @@ var detailsView = [];
 
 // remove any special characters (ie. unicode)
 function removeSpecialStrings(s) {
+  // remove weird Google meet header line that causes the Bangle to lock up:
+  s = s.replace(/[:~][:~][:~][:~][:~][:~][:~][:~][:~][:~]+/g, '');
+  // remove unicode characters:
   s = JSON.stringify(s);
   s = s.replace(/\\x[0-9a-fA-F][0-9a-fA-F]/g, '');
   s = s.replace(/\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]/g, '');
   s = JSON.parse(s);
+  // remove whitespaces/newlines from start and end of string:
   return s.trim();
 }
 
