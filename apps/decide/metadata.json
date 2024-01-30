@@ -2,7 +2,7 @@
   "id": "decide",
   "name": "Decide by Coin",
   "shortName": "Coin-toss",
-  "version": "0.01",
+  "version": "0.02",
   "description": "Helps you decide by tossing a coin",
   "icon": "decide.png",
   "screenshots": [{ "url": "screenshot.png" }],

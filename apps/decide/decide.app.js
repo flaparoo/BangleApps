@@ -96,11 +96,13 @@ g.setFontAlign(0, 0).setFont("Vector", 25);
 g.drawString('Tap to Toss', g.getWidth()/2, g.getHeight()/2);
 
 
-// handle taps
-Bangle.setUI( 'updown', action => {
+// handle touch/taps
+Bangle.setUI('updown', action => {
   if (action === undefined)
     toss();
 });
+Bangle.on('tap', data => { toss(); });
+
 // exit on button press
 setWatch(e => { Bangle.showClock(); }, BTN1);
 
