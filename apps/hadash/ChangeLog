@@ -1,3 +1,4 @@
 0.90: initial release
 0.91: added variable input for service calls
 0.92: added label attribute for inputs
+0.93: changed most evals to setTimeouts

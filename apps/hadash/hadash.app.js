@@ -73,6 +73,19 @@ function callService(title, domain, service, data, level) {
 }
 
 
+// callbacks for service input menu entries
+function serviceInputChoiceChange(v, key, entry, level) {
+  entry.input[key].value = entry.input[key].options[v];
+  getServiceInputData(entry, level);
+}
+
+function serviceInputFreeform(key, entry, level) {
+  require("textinput").input({text: entry.input[key].value}).then(result => {
+    entry.input[key].value = result;
+    getServiceInputData(entry, level);
+  });
+}
+
 // get input data before calling a service
 function getServiceInputData(entry, level) {
   let serviceInputMenu = {
@@ -88,6 +101,7 @@ function getServiceInputData(entry, level) {
       entry.data[key] = entry.input[key].value;
 
     let label = ( ('label' in entry.input[key] && entry.input[key].label) ? entry.input[key].label : key );
+    let key4CB = key;
 
     if ('options' in entry.input[key] && entry.input[key].options.length) {
       // give choice from a selection of options
@@ -100,27 +114,19 @@ function getServiceInputData(entry, level) {
       if (idx == -1) {
         idx = entry.input[key].options.push(entry.input[key].value) - 1;
       }
+      // the setTimeout method can not be used for the "format" CB since it expects a return value - using eval instead:
       eval('CBs["'+key+'_format"] = function(v) { return entry.input["'+key+'"].options[v]; }');
-      eval('CBs["'+key+'_onchange"] = function(v) { '+
-                                      'entry.input["'+key+'"].value = entry.input["'+key+'"].options[v]; '+
-                                      'getServiceInputData(entry, level);'+
-                                    '}');
       serviceInputMenu[label] = {
         value: parseInt(idx),
         min: 0,
         max: entry.input[key].options.length - 1,
         format: CBs[key+'_format'],
-        onchange: CBs[key+'_onchange']
+        onchange: (v) => setTimeout(serviceInputChoiceChange, 10, v, key4CB, entry, level)
       };
 
     } else {
       // free-form text input
-      eval('CBs["'+key+'_textinput"] = function() { '+
-                              'require("textinput").input({text: entry.input["'+key+'"].value}).then(result => {'+
-                              'entry.input["'+key+'"].value = result; '+
-                              'getServiceInputData(entry, level);'+
-                            '}) }');
-      serviceInputMenu[label] = CBs[key+'_textinput'];
+      serviceInputMenu[label] = () => setTimeout(serviceInputFreeform, 10, key4CB, entry, level);
     }
   }
   // menu entry to actually call the service:
@@ -135,9 +141,9 @@ var menus = [];
 
 // add menu entries
 function addMenuEntries(level, entries) {
-  let entryCBs = [];
   for (let i in entries) {
     let entry = entries[i];
+    let entryCB;
 
     // is there a menu entry title?
     if (! ('title' in entry) || ! entry.title)
@@ -149,7 +155,7 @@ function addMenuEntries(level, entries) {
          * query entity state
          */
         if ('id' in entry && entry.id) {
-          eval('entryCBs['+i+'] = function() { queryState("'+entry.title+'", "'+entry.id+'", '+level+'); }');
+          entryCB = () => setTimeout(queryState, 10, entry.title, entry.id, level);
         }
         break;
 
@@ -162,13 +168,10 @@ function addMenuEntries(level, entries) {
             entry.data = {};
           if ('input' in entry) {
             // get input for some data fields first
-            eval('entryCBs['+i+'] = function() { getServiceInputData('+JSON.stringify(entry)+', '+level+'); }');
-
+            entryCB = () => setTimeout(getServiceInputData, 10, entry, level);
           } else {
             // call service straight away
-            let serviceData = JSON.stringify(entry.data);
-            eval('entryCBs['+i+'] = function() { callService("'+entry.title+'", "'+entry.domain+'", "'+entry.service+
-                                                                                  '", '+serviceData+', '+level+'); }');
+            entryCB = () => setTimeout(callService, 10, entry.title, entry.domain, entry.service, entry.data, level);
           }
         }
         break;
@@ -177,16 +180,15 @@ function addMenuEntries(level, entries) {
         /*
          * sub-menu
          */
-        let menuData = JSON.stringify(entry.data);
-        eval('entryCBs['+i+'] = function() { showSubMenu('+(level + 1)+', "'+entry.title+'", '+menuData+'); }');
+        entryCB = () => setTimeout(showSubMenu, 10, level + 1, entry.title, entry.data);
         break;
     }
 
     // only attach a call-back to menu entry if it's properly configured
-    if (! entryCBs[i]) {
+    if (! entryCB) {
       menus[level][entry.title + ' - not correctly configured!'] = {};
     } else {
-      menus[level][entry.title] = entryCBs[i];
+      menus[level][entry.title] = entryCB;
     }
   }
 }
