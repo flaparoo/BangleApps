@@ -19,6 +19,7 @@ const APP_NAME = 'aviatorclk';
 const horizontalCenter = g.getWidth()/2;
 const mainTimeHeight = 38;
 const secondaryFontHeight = 22;
+require("Font8x16").add(Graphics); // tertiary font
 const dateColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_BLUE );
 const UTCColour = ( g.theme.dark ? COLOUR_LIGHT_CYAN : COLOUR_DARK_CYAN );
 const separatorColour = ( g.theme.dark ? COLOUR_LIGHT_GREY : COLOUR_DARK_GREY );
@@ -92,14 +93,30 @@ function drawAVWX() {
   if (! avwxTimeout) { avwxTimeout = setTimeout(updateAVWX, 5 * 60000); }
 }
 
+// show AVWX update status
+function showUpdateAVWXstatus(status) {
+  let y = Bangle.appRect.y + 10;
+  g.setBgColor(g.theme.bg);
+  if (status) {
+    g.setFontAlign(0, -1).setFont("8x16").setColor( g.theme.dark ? COLOUR_ORANGE : COLOUR_DARK_YELLOW );
+    g.drawString(status, horizontalCenter - 71, y, true);
+  } else {
+    g.clearRect(0, y, horizontalCenter - 54, y + 16);
+  }
+}
+
 // update the METAR info
 function updateAVWX() {
   if (avwxTimeout) clearTimeout(avwxTimeout);
   avwxTimeout = undefined;
 
-  METAR = '\nGetting GPS fix';
-  METARlinesCount = 0; METARscollLines = 0;
-  METARts = undefined;
+  if (METAR) {
+    showUpdateAVWXstatus('GPS');
+  } else {
+    METAR = '\nGetting GPS fix';
+    METARlinesCount = 0; METARscollLines = 0;
+    METARts = undefined;
+  }
   drawAVWX();
 
   Bangle.setGPSPower(true, APP_NAME);
@@ -112,9 +129,13 @@ function updateAVWX() {
       let lat = fix.lat;
       let lon = fix.lon;
 
-      METAR = '\nRequesting METAR';
-      METARlinesCount = 0; METARscollLines = 0;
-      METARts = undefined;
+      if (METAR) {
+        showUpdateAVWXstatus('AVWX');
+      } else {
+        METAR = '\nRequesting METAR';
+        METARlinesCount = 0; METARscollLines = 0;
+        METARts = undefined;
+      }
       drawAVWX();
 
       // get latest METAR from nearest airport (via AVWX API)
@@ -146,15 +167,17 @@ function updateAVWX() {
           METARts = undefined;
         }
 
+        showUpdateAVWXstatus('');
         drawAVWX();
         AVWXrequest = undefined;
 
       }, error => {
         // AVWX API request failed
         console.log(error);
-        METAR = 'ERR: ' + error;
+                METAR = 'ERR: ' + error;
         METARlinesCount = 0; METARscollLines = 0;
         METARts = undefined;
+        showUpdateAVWXstatus('');
         drawAVWX();
         AVWXrequest = undefined;
       });
@@ -269,8 +292,7 @@ Bangle.on('tap', data => {
       scrollAVWX(1);
       break;
     case 'left':
-    case 'right':
-      // toggle seconds display on double taps left or right
+      // toggle seconds display on double taps left
       if (data.double) {
         if (settings.showSeconds) {
           clearInterval(secondsInterval);
