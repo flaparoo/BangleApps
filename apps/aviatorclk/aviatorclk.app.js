@@ -110,10 +110,9 @@ function updateAVWX() {
   if (avwxTimeout) clearTimeout(avwxTimeout);
   avwxTimeout = undefined;
 
-  if (METAR) {
-    showUpdateAVWXstatus('GPS');
-  } else {
-    METAR = '\nGetting GPS fix';
+  showUpdateAVWXstatus('GPS');
+  if (! METAR) {
+    METAR = '\nUpdating METAR';
     METARlinesCount = 0; METARscollLines = 0;
     METARts = undefined;
   }
@@ -129,10 +128,9 @@ function updateAVWX() {
       let lat = fix.lat;
       let lon = fix.lon;
 
-      if (METAR) {
-        showUpdateAVWXstatus('AVWX');
-      } else {
-        METAR = '\nRequesting METAR';
+      showUpdateAVWXstatus('AVWX');
+      if (! METAR) {
+        METAR = '\nUpdating METAR';
         METARlinesCount = 0; METARscollLines = 0;
         METARts = undefined;
       }
