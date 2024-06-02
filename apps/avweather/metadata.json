@@ -1,0 +1,20 @@
+{
+  "id": "avweather",
+  "name": "Aviation Weather",
+  "shortName":"AvWeather",
+  "version":"0.91",
+  "description": "Shows the latest METAR and TAF for the nearest airport",
+  "icon": "avweather.png",
+  "screenshots": [{ "url": "screenshot.png" }],
+  "type": "app",
+  "tags": "outdoors",
+  "supports": ["BANGLEJS2"],
+  "dependencies" : { "avwx": "module" },
+  "readme": "README.md",
+  "storage": [
+    { "name":"avweather.app.js",      "url":"avweather.app.js" },
+    { "name":"avweather.settings.js", "url":"avweather.settings.js" },
+    { "name":"avweather.img",         "url":"avweather-icon.js", "evaluate":true }
+  ],
+  "data": [{ "name":"avweather.json" }]
+}
