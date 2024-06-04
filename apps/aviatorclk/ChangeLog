@@ -1,3 +1,4 @@
 1.00: initial release
 1.01: added tap event to scroll METAR and toggle seconds display
-1.02: toggle seconds display only on left taps; show AVWX update status next to time if a METAR is already displayed
+1.02: toggle seconds display only on left taps; continue showing METAR during AVWX updates (show update status next to time)
+1.03: re-try GPS fix if it takes too long; bug fix

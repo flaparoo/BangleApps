@@ -38,6 +38,7 @@ var settings = Object.assign({
 var drawTimeout;
 var secondsInterval;
 var avwxTimeout;
+var gpsTimeout;
 
 var AVWXrequest;
 var METAR = '';
@@ -97,18 +98,30 @@ function drawAVWX() {
 function showUpdateAVWXstatus(status) {
   let y = Bangle.appRect.y + 10;
   g.setBgColor(g.theme.bg);
+  g.clearRect(0, y, horizontalCenter - 54, y + 16);
   if (status) {
     g.setFontAlign(0, -1).setFont("8x16").setColor( g.theme.dark ? COLOUR_ORANGE : COLOUR_DARK_YELLOW );
     g.drawString(status, horizontalCenter - 71, y, true);
-  } else {
-    g.clearRect(0, y, horizontalCenter - 54, y + 16);
   }
+}
+
+// re-try if the GPS doesn't return a fix in time
+function GPStookTooLong() {
+  Bangle.setGPSPower(false, APP_NAME);
+  if (gpsTimeout) clearTimeout(gpsTimeout);
+  gpsTimeout = undefined;
+
+  showUpdateAVWXstatus('X');
+
+  if (! avwxTimeout) { avwxTimeout = setTimeout(updateAVWX, 5 * 60000); }
 }
 
 // update the METAR info
 function updateAVWX() {
   if (avwxTimeout) clearTimeout(avwxTimeout);
   avwxTimeout = undefined;
+  if (gpsTimeout) clearTimeout(gpsTimeout);
+  gpsTimeout = undefined;
 
   showUpdateAVWXstatus('GPS');
   if (! METAR) {
@@ -118,6 +131,7 @@ function updateAVWX() {
   }
   drawAVWX();
 
+  gpsTimeout = setTimeout(GPStookTooLong, 30 * 60000);
   Bangle.setGPSPower(true, APP_NAME);
   Bangle.on('GPS', fix => {
     // prevent multiple, simultaneous requests
@@ -125,6 +139,9 @@ function updateAVWX() {
 
     if ('fix' in fix && fix.fix != 0 && fix.satellites >= 4) {
       Bangle.setGPSPower(false, APP_NAME);
+      if (gpsTimeout) clearTimeout(gpsTimeout);
+      gpsTimeout = undefined;
+
       let lat = fix.lat;
       let lon = fix.lon;
 
