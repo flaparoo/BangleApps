@@ -123,6 +123,13 @@ function updateAVWX() {
   if (gpsTimeout) clearTimeout(gpsTimeout);
   gpsTimeout = undefined;
 
+  if (! NRF.getSecurityStatus().connected) {
+    // if Bluetooth is NOT connected, try again in 5min
+    showUpdateAVWXstatus('X');
+    avwxTimeout = setTimeout(updateAVWX, 5 * 60000);
+    return;
+  }
+
   showUpdateAVWXstatus('GPS');
   if (! METAR) {
     METAR = '\nUpdating METAR';
