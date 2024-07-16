@@ -339,7 +339,7 @@ Bangle.loadWidgets();
 Bangle.drawWidgets();
 
 // draw static separator line
-y = Bangle.appRect.y + mainTimeHeight + secondaryFontHeight;
+let y = Bangle.appRect.y + mainTimeHeight + secondaryFontHeight;
 g.setColor(separatorColour);
 g.drawLine(0, y, g.getWidth(), y);
 
