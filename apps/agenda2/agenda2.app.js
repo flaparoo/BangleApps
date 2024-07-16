@@ -46,7 +46,6 @@ function getEvents() {
 
   // get all Alarms / Timers / Events
   var alarms = require("sched").getAlarms();
-  var activeAlarms = require("sched").getActiveAlarms(alarms);
 
   for (let idx in alarms) {
     let alarm = alarms[idx];
@@ -248,7 +247,6 @@ function showMainView() {
 function drawDetailsViewLine(idx, rect) {
   let line = detailsView[idx];
   let horizontalCenter = rect.x + (rect.w / 2);
-  let rightAlign = rect.x + rect.w;
 
   g.setFont("8x16");
 
