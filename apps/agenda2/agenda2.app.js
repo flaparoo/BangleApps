@@ -13,7 +13,6 @@ const COLOUR_BLUE          = 0x001f;   // same as: g.setColor(0, 0, 1)
 const COLOUR_YELLOW        = 0xffe0;   // same as: g.setColor(1, 1, 0)
 const COLOUR_PINK          = 0xf810;   // same as: g.setColor(1, 0, 0.5)
 
-const eventAreaHeight = g.getHeight() - 10;
 const maxStart = Date.now() + SHOW_DAYS*86400000;  // in ms
 const minEnd = Date.now() - HOURS_PAST*3600000;    // in ms
 const dateColour = ( g.theme.dark ? COLOUR_GREEN : COLOUR_BLUE );
