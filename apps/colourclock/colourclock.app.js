@@ -21,8 +21,6 @@ const minuteHandLength = innerRadius * 0.95;
 const secondHandOffset = 6;
 const secondHandLength = innerRadius * 0.98;
 
-var drawInterval;
-
 // read in the settings
 var settings = Object.assign({
   showSeconds: true,
@@ -137,7 +135,7 @@ draw();
 let updateFreq = ( settings.showSeconds ? 1000 : 60000 );
 setTimeout(function() {
   draw();
-  drawInterval = setInterval(draw, updateFreq);
+  setInterval(draw, updateFreq);
 }, updateFreq - (Date.now() % updateFreq));
 
 Bangle.setUI('clock');
