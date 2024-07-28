@@ -313,9 +313,10 @@ Bangle.on('tap', data => {
     case 'bottom':
       scrollAVWX(1);
       break;
-    case 'left':
-      // toggle seconds display on double taps left
-      if (data.double) {
+    case 'front':
+      // toggle seconds display on double tap on front/watch-face
+      // (if watch is un-locked)
+      if (data.double && ! Bangle.isLocked()) {
         if (settings.showSeconds) {
           clearInterval(secondsInterval);
           let y = Bangle.appRect.y + mainTimeHeight - 3;
