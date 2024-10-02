@@ -1,0 +1,19 @@
+{
+  "id": "colourclock",
+  "name": "Colour Analog Clock",
+  "shortName":"Colour Clock",
+  "version":"0.93",
+  "description": "A colourful analog clock",
+  "icon": "colourclock.png",
+  "screenshots": [{ "url": "screenshot.png" },{ "url": "screenshot2.png" },{ "url": "screenshot3.png" }],
+  "type": "clock",
+  "tags": "clock",
+  "supports": ["BANGLEJS2"],
+  "readme": "README.md",
+  "storage": [
+    { "name":"colourclock.app.js",      "url":"colourclock.app.js" },
+    { "name":"colourclock.settings.js", "url":"colourclock.settings.js" },
+    { "name":"colourclock.img",         "url":"colourclock-icon.js", "evaluate":true }
+  ],
+  "data": [{ "name":"colourclock.json" }]
+}
