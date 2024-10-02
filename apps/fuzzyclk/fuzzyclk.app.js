@@ -8,6 +8,7 @@ const centerX = g.getWidth() / 2;
 const centerY = g.getHeight() / 2;
 
 var drawInterval;
+var prevMetaTime = '';
 
 
 // read in the settings
@@ -75,26 +76,32 @@ function draw() {
     hours += 1;
   let hourStr = numbers[hours % 12];
 
+  let metaTime = hours.toString();
+
   let timeStr = "It's ";
   let maybeInclOClock = true;
 
   if (minutes == 0 || minutes == 15 || minutes == 30 || minutes == 45) {
     timeStr += pickRandomTerm(termsExactly) + ' ';
+    metaTime += 'exactly';
   } else if ((minutes >= 53 && minutes < 57) ||
              (minutes >=  8 && minutes < 12) ||
              (minutes >= 23 && minutes < 27) ||
              (minutes >= 38 && minutes < 42)) {
     timeStr += pickRandomTerm(termsBefore) + ' ';
+    metaTime += 'before';
   } else if ( minutes >= 57 || minutes <  5  ||
              (minutes >= 12 && minutes < 20) ||
              (minutes >= 27 && minutes < 35) ||
              (minutes >= 42 && minutes < 50)) {
     timeStr += pickRandomTerm(termsApprox) + ' ';
+    metaTime += 'approx';
   } else if ((minutes >=  5 && minutes <  8) ||
              (minutes >= 20 && minutes < 23) ||
              (minutes >= 35 && minutes < 38) ||
              (minutes >= 50 && minutes < 53)) {
     timeStr += pickRandomTerm(termsAfter) + ' ';
+    metaTime += 'after';
   }
 
   if (minutes >= 53 || minutes <  8) {
@@ -106,12 +113,23 @@ function draw() {
       timeStr += hourStr + " o'clock";
     }
     maybeInclOClock = false;
+    metaTime += 'oclock';
   } else if (minutes < 23) {
     timeStr += "quarter past " + hourStr;
+    metaTime += 'quarterpast';
   } else if (minutes < 38) {
     timeStr += "half past " + hourStr;
+    metaTime += 'halfpast';
   } else {
     timeStr += "quarter to " + hourStr;
+    metaTime += 'quarterto';
+  }
+
+  if (metaTime == prevMetaTime) {
+    // no need to update the display
+    return;
+  } else {
+    prevMetaTime = metaTime;
   }
 
   if (maybeInclOClock && Math.random() > 0.7)
@@ -166,6 +184,7 @@ startClock();
 // show exact time on tap
 Bangle.on('touch', (button, xy) => {
   if (drawInterval) clearInterval(drawInterval);
+  prevMetaTime = '';
   drawExact();
   setTimeout(function() {
     draw();
