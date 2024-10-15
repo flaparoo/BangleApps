@@ -22,10 +22,13 @@ var allEvents;
 var sunTimes = {};
 var mainListView = [];
 var detailsView = [];
+var mainViewScroller;
 
 
 // remove any special characters (ie. unicode)
 function removeSpecialStrings(s) {
+  if (s == undefined)
+    return undefined;
   // remove weird Google meet header line that causes the Bangle to lock up:
   s = s.replace(/[:~][:~][:~][:~][:~][:~][:~][:~][:~][:~]+/g, '');
   // remove unicode characters:
@@ -228,10 +231,11 @@ function drawMainViewLine(idx, rect) {
 /*
  * show the scroller for the main view
  */
-function showMainView() {
-  E.showScroller({
+function showMainView(scroll) {
+  mainViewScroller = E.showScroller({
     h: 20,
     c: mainListView.length,
+    scroll: scroll,
     draw: drawMainViewLine,
     select: (idx, touch) => {
       if ('i' in mainListView[idx])
@@ -286,6 +290,7 @@ function drawDetailsViewLine(idx, rect) {
  */
 function showEventDetails(eventIdx) {
   let event = allEvents[eventIdx];
+  let mainViewScroll = mainViewScroller.scroll;
 
   g.setFont("8x16");
 
@@ -351,9 +356,9 @@ function showEventDetails(eventIdx) {
     draw: drawDetailsViewLine,
     select: (idx, touch) => {
       if (idx >= detailsView.length - 3)
-        showMainView();
+        showMainView(mainViewScroll);
     },
-    back: () => showMainView()
+    back: () => showMainView(mainViewScroll)
   });
 }
 
@@ -368,7 +373,7 @@ if ('lat' in mylocation && 'lon' in mylocation) {
 }
 getEvents();
 buildMainView();
-showMainView();
+showMainView(0);
 
 // exit on button press
 setWatch(e => { Bangle.showClock(); }, BTN1);

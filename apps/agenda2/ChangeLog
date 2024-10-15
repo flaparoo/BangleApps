@@ -8,3 +8,4 @@
 0.961: handle (remove) unicode characters (which cause the watch to lock up)
 0.962: trim fields
 0.963: remove weird Google meet header line (that causes the Bangle to lock up)
+0.964: remember menu position; bug fix
