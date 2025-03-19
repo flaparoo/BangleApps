@@ -1,0 +1,19 @@
+{
+  "id": "fuzzyclk",
+  "name": "Fuzzy Clock",
+  "shortName":"Fuzzy Clock",
+  "version":"0.92",
+  "description": "Tells the time - close enough",
+  "icon": "fuzzyclk.png",
+  "screenshots": [{ "url": "screenshot.png" },{ "url": "screenshot2.png" },{ "url": "screenshot3.png" },{ "url": "screenshot4.png" }],
+  "type": "clock",
+  "tags": "clock",
+  "supports": ["BANGLEJS2"],
+  "readme": "README.md",
+  "storage": [
+    { "name":"fuzzyclk.app.js",      "url":"fuzzyclk.app.js" },
+    { "name":"fuzzyclk.settings.js", "url":"fuzzyclk.settings.js" },
+    { "name":"fuzzyclk.img",         "url":"fuzzyclk-icon.js", "evaluate":true }
+  ],
+  "data": [{ "name":"fuzzyclk.json" }]
+}
