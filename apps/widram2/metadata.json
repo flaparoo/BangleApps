@@ -1,0 +1,15 @@
+{ "id": "widram2",
+  "name": "Another RAM Usage Widget",
+  "shortName":"RAM Widget",
+  "version":"0.90",
+  "description": "Show the RAM usage percentage as a widget",
+  "icon": "widget.png",
+  "screenshots": [{ "url": "screenshot.png" }],
+  "type": "widget",
+  "tags": "widget",
+  "supports": ["BANGLEJS2"],
+  "readme": "README.md",
+  "storage": [
+    { "name": "widram2.wid.js", "url": "widget.js" }
+  ]
+}
