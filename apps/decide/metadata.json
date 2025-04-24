@@ -1,0 +1,17 @@
+{
+  "id": "decide",
+  "name": "Decide by Coin",
+  "shortName": "Coin-toss",
+  "version": "0.02",
+  "description": "Helps you decide by tossing a coin",
+  "icon": "decide.png",
+  "screenshots": [{ "url": "screenshot.png" }],
+  "type": "app",
+  "tags": "tool",
+  "supports" : ["BANGLEJS2"],  
+  "readme": "README.md",
+  "storage": [
+    { "name": "decide.app.js", "url": "decide.app.js" },
+    { "name": "decide.img",    "url": "decide-icon.js", "evaluate": true }
+  ]
+}
