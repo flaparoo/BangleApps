@@ -1,0 +1,11 @@
+0.90: initial version
+0.91: scroll 1 event at a time
+0.92: incl. sunrise/set; ignore past events; internationalisation; bug fixes
+0.93: fixed minor bug
+0.94: refactored scolling (to use E.showScroller)
+0.95: added details view
+0.96: icons for sunrise/set; better "exclude past events" logic; code clean-up
+0.961: handle (remove) unicode characters (which cause the watch to lock up)
+0.962: trim fields
+0.963: remove weird Google meet header line (that causes the Bangle to lock up)
+0.964: remember menu position; bug fix
