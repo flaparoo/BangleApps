@@ -3,6 +3,7 @@
   "name": "Aviation Weather",
   "shortName":"AvWeather",
   "version":"0.91",
+  "author": "flaparoo",
   "description": "Shows the latest METAR and TAF for the nearest airport",
   "icon": "avweather.png",
   "screenshots": [{ "url": "screenshot.png" }],
