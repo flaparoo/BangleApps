@@ -3,6 +3,7 @@
   "name": "Another Agenda App",
   "shortName":"Agenda2",
   "version":"0.964",
+  "author": "flaparoo",
   "description": "List of upcoming events (calendar and alarms)",
   "icon": "agenda2.png",
   "screenshots": [{ "url": "screenshot.png" }, { "url": "screenshot2.png" }, { "url": "screenshot3.png" }],
