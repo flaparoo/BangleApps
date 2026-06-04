@@ -2,6 +2,7 @@
   "name": "Another RAM Usage Widget",
   "shortName":"RAM Widget",
   "version":"0.90",
+  "author": "flaparoo",
   "description": "Show the RAM usage percentage as a widget",
   "icon": "widget.png",
   "screenshots": [{ "url": "screenshot.png" }],
