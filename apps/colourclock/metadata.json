@@ -3,6 +3,7 @@
   "name": "Colour Analog Clock",
   "shortName":"Colour Clock",
   "version":"0.93",
+  "author": "flaparoo",
   "description": "A colourful analog clock",
   "icon": "colourclock.png",
   "screenshots": [{ "url": "screenshot.png" },{ "url": "screenshot2.png" },{ "url": "screenshot3.png" }],
