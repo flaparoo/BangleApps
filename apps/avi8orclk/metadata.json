@@ -1,0 +1,20 @@
+{
+  "id": "avi8orclk",
+  "name": "Aviator Clock",
+  "shortName":"AV8R Clock",
+  "version":"1.02",
+  "author": "flaparoo",
+  "description": "A clock for aviators, with local time, UTC (incl. offset), date and sun-rise / sun-set",
+  "icon": "avi8orclk.png",
+  "screenshots": [{ "url": "screenshot.png" }, { "url": "screenshot2.png" }],
+  "type": "clock",
+  "tags": "clock",
+  "supports": ["BANGLEJS2"],
+  "readme": "README.md",
+  "storage": [
+    { "name":"avi8orclk.app.js",      "url":"avi8orclk.app.js" },
+    { "name":"avi8orclk.settings.js", "url":"avi8orclk.settings.js" },
+    { "name":"avi8orclk.img",         "url":"avi8orclk-icon.js", "evaluate":true }
+  ],
+  "data": [{ "name":"avi8orclk.json" }]
+}
