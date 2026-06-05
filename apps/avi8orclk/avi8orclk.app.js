@@ -218,7 +218,7 @@ Bangle.on('tap', data => {
       if (data.double && !Bangle.isLocked()) {
         if (settings.showSeconds) {
           clearInterval(secondsInterval);
-          let y = Bangle.appRect.y + secondaryFontHeight + tertiaryFontHeight + 4 + mainTimeHeight;
+          let y = Bangle.appRect.y + mainTimeHeight - 3;
           g.clearRect(horizontalCenter + 54, y - secondaryFontHeight, g.getWidth(), y);
           settings.showSeconds = false;
         } else {
