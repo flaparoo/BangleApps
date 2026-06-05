@@ -1,8 +1,8 @@
 {
   "id": "avi8orclk",
-  "name": "Aviator Clock",
-  "shortName":"Avi8or",
-  "version":"0.02",
+  "name": "Avi8or Clock",
+  "shortName":"Avi8or Clock",
+  "version":"0.03",
   "author": "flaparoo",
   "description": "A clock for aviators, with local time, UTC (incl. offset), date and sun-rise / sun-set",
   "icon": "avi8orclk.png",
