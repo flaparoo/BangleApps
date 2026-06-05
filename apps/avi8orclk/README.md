@@ -23,6 +23,8 @@ default configured through the settings).
 ## Settings
 
 - **Show Seconds**: to conserve battery power, you can turn the seconds display off (as the default)
+- **Use My Location**: if the [My Location](?id=mylocation) app is installed, use that location instead of trying to get a GPS fix
+- **GPS Update Inteval**: how often (in minutes) to update the location based on GPS (if not using [My Location](?id=mylocation))
 
 
 ## Author

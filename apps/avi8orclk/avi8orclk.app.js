@@ -27,14 +27,17 @@ const sunColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_PINK );
 
 // read in the settings
 var settings = Object.assign({
-  showSeconds: true,
+  showSeconds: false,
+  useMyLocation: false,
+  gpsUpdateInterval: 60,  // minutes
 }, require('Storage').readJSON(APP_NAME + '.json', true) || {});
 
 
 // globals
 var drawTimeout;
 var secondsInterval;
-var sunTimes = {};
+var sunTimesTimeout;
+var sunrise = "no", sunset = "location";
 
 
 
@@ -55,12 +58,58 @@ function timeStr(date, seconds) {
 }
 
 
+// update sunrise/sunset times
+function updateSunTimes() {
+
+  if (settings.useMyLocation) {
+    // use "My Location"
+    var mylocation = require("Storage").readJSON("mylocation.json",1)||{};
+    if ('lat' in mylocation && 'lon' in mylocation) {
+      let now = new Date(Date.now());
+console.log(APP_NAME+": using My Location "+mylocation.lat+" "+mylocation.lon+" at "+now.toString());         //DEBUG
+      let sunTimes = require("suncalc").getTimes(now, mylocation.lat, mylocation.lon);
+      sunrise = require("locale").time(sunTimes.sunrise, 1).trim();
+      sunset  = require("locale").time(sunTimes.sunset,  1);
+
+      // update "My Location" based sun-times daily:
+      if (sunTimesTimeout) clearTimeout(sunTimesTimeout);
+      sunTimesTimeout = setTimeout(updateSunTimes, 1440 * 60000);
+
+    } else {
+      // no location -> ignore "My Location" and use GPS
+      settings.useMyLocation = false;
+    }
+  }
+
+  if (! settings.useMyLocation) {
+    // get GPS fix
+    sunrise = "GPS"; sunset = "pending";
+    Bangle.setGPSPower(true, APP_NAME);
+    Bangle.on('GPS', fix => {
+      if ('fix' in fix && fix.fix != 0 && fix.satellites >= 4) {
+        Bangle.setGPSPower(false, APP_NAME);
+
+        let now = new Date(Date.now());
+console.log(APP_NAME+": GPS fix "+fix.lat+" "+fix.lon+" at "+now.toString());                                 //DEBUG
+        let sunTimes = require("suncalc").getTimes(now, fix.lat, fix.lon);
+        sunrise = require("locale").time(sunTimes.sunrise, 1).trim();
+        sunset  = require("locale").time(sunTimes.sunset,  1);
+        draw();
+
+        if (sunTimesTimeout) clearTimeout(sunTimesTimeout);
+        sunTimesTimeout = setTimeout(updateSunTimes, settings.gpsUpdateInterval * 60000);
+      }
+    });
+  }
+}
+
+
 // draw only the seconds part of the main clock
 function drawSeconds() {
   let now = new Date();
   let seconds = now.getSeconds().toString();
   if (seconds.length == 1) seconds = '0' + seconds;
-  let y = Bangle.appRect.y + mainTimeHeight;
+  let y = Bangle.appRect.y + secondaryFontHeight + tertiaryFontHeight + 4 + mainTimeHeight;
   g.setBgColor(g.theme.bg);
   g.setFontAlign(-1, 1).setFont("Vector", secondaryFontHeight).setColor(COLOUR_GREY);
   g.drawString(seconds, horizontalCenter + 54, y, true);
@@ -74,6 +123,7 @@ function syncSecondsUpdate() {
     secondsInterval = setInterval(drawSeconds, 1000);
   }, 1000 - (Date.now() % 1000));
 }
+
 
 // set timeout for per-minute updates
 function queueDraw() {
@@ -94,23 +144,11 @@ function draw() {
   g.setBgColor(g.theme.bg);
   g.clearRect(0, y, g.getWidth(), g.getHeight());
 
-  y += 2;
-  
-  // main time
-  g.setFontAlign(0, -1).setFont("Vector", mainTimeHeight).setColor(g.theme.fg);
-  g.drawString(timeStr(now, false), horizontalCenter, y, false);
-  if (settings.showSeconds)
-    drawSeconds();
-  y += mainTimeHeight;
-
-  // draw static separator line
-  g.setColor(separatorColour);
-  g.drawLine(0, y, g.getWidth(), y);
-  y += 4;
-
   // UTC
+  let utcDate = nowUTC.getDate().toString();
+  if (utcDate.length == 1) utcDate = '0' + utcDate;
   g.setFontAlign(0, -1).setFont("Vector", secondaryFontHeight).setColor(UTCColour);
-  g.drawString(timeStr(nowUTC, false) + "Z", horizontalCenter, y, false);
+  g.drawString(utcDate + " " + timeStr(nowUTC, false) + "Z", horizontalCenter, y, false);
   y += secondaryFontHeight;
 
   // UTC offset
@@ -133,10 +171,22 @@ function draw() {
   g.drawLine(0, y, g.getWidth(), y);
   y += 4;
 
+  // main time
+  y += 2;
+  g.setFontAlign(0, -1).setFont("Vector", mainTimeHeight).setColor(g.theme.fg);
+  g.drawString(timeStr(now, false), horizontalCenter, y, false);
+  if (settings.showSeconds)
+    drawSeconds();
+  y += mainTimeHeight;
+
+  // draw static separator line
+  g.setColor(separatorColour);
+  g.drawLine(0, y, g.getWidth(), y);
+  y += 4;
+
   // weekday and day of the month
   g.setFontAlign(0, -1).setFont("Vector", secondaryFontHeight).setColor(dateColour);
-  g.drawString(require("locale").dow(now, 1).toUpperCase() + ' ' + 45, horizontalCenter, y, false);
-  //g.drawString(require("locale").dow(now, 1).toUpperCase() + ' ' + now.getDate(), horizontalCenter, y, false);
+  g.drawString(require("locale").dow(now, 1).toUpperCase() + ' ' + now.getDate(), horizontalCenter, y, false);
   y += secondaryFontHeight;
 
   // Sunrise + Sunset
@@ -144,43 +194,18 @@ function draw() {
   g.setColor(sunColour);
   g.drawImage(atob("FBSBAAAAAAAAAAAABgAA8AAfgAAAAAAAAGAABgAYYYDAMAQCAB+AA/gAP8A//8H/+AAAAAAA"), 0, y - 22);
   g.setFontAlign(-1, -1).setFont("Vector", secondaryFontHeight);
-  g.drawString(require("locale").time(sunTimes.sunrise, 1).trim(), 0, y, false);
+  g.drawString(sunrise, 0, y, false);
   g.drawImage(atob("FBSBAAAAAAAAAAAAH4AA8AAGAAAAAAAAAGAABgAYYYDAMAQCAB+AA/gAP8A//8H/+AAAAAAA"), g.getWidth() - 20, y - 22);
   g.setFontAlign(1, -1);
-  g.drawString(require("locale").time(sunTimes.sunset, 1), g.getWidth(), y, false);
+  g.drawString(sunset, g.getWidth(), y, false);
 
   queueDraw();
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-var now = new Date(Date.now());
-sunTimes = require("suncalc").getTimes(now, -31.521932, 115.947703);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// calculate location-based sunrise/sunset
+updateSunTimes();
 
 // initialise
 g.clear(true);
