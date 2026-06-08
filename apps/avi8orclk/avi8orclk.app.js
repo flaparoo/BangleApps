@@ -83,8 +83,9 @@ console.log(APP_NAME+": using My Location "+mylocation.lat+" "+mylocation.lon+" 
 
   if (! settings.useMyLocation) {
     // get GPS fix
-    if (! sunrise && ! sunset)
+    if (! sunrise && ! sunset) {
       sunrise = "GPS"; sunset = "pending";
+    }
     Bangle.setGPSPower(true, APP_NAME);
     Bangle.on('GPS', fix => {
       if ('fix' in fix && fix.fix != 0 && fix.satellites >= 4) {
@@ -103,8 +104,9 @@ console.log(APP_NAME+": GPS fix "+fix.lat+" "+fix.lon+" at "+now.toString());   
     });
   }
 
-  if (! sunrise && ! sunset)
+  if (! sunrise && ! sunset) {
     sunrise = "N/A"; sunset = "N/A";
+  }
 }
 
 
