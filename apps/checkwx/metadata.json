@@ -2,7 +2,7 @@
   "id": "checkwx",
   "name": "CheckWX Module",
   "shortName":"CheckWX",
-  "version":"1.00",
+  "version":"0.01",
   "description": "Module/library for the CheckWX API",
   "icon": "checkwx.png",
   "type": "module",
