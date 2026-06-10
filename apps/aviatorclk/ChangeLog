@@ -5,3 +5,4 @@
       bug fix
       don't attempt to update METAR if Bluetooth is NOT connected
       toggle seconds display on front double-taps (if un-locked) to avoid accidential enabling
+1.03: support new CheckWX module (instead of AVWX)

@@ -1,0 +1,19 @@
+{
+  "id": "checkwx",
+  "name": "CheckWX Module",
+  "shortName":"CheckWX",
+  "version":"1.00",
+  "description": "Module/library for the CheckWX API",
+  "icon": "checkwx.png",
+  "type": "module",
+  "tags": "outdoors",
+  "author": "Flaparoo",
+  "supports": ["BANGLEJS2"],
+  "provides_modules": ["checkwx"],
+  "readme": "README.md",
+  "interface": "interface.html",
+  "storage": [
+    { "name":"checkwx", "url":"checkwx.js" }
+  ],
+  "data": [{ "name":"checkwx.json" }]
+}

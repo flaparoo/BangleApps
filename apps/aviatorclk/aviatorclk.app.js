@@ -24,23 +24,31 @@ const dateColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_BLUE );
 const UTCColour = ( g.theme.dark ? COLOUR_LIGHT_CYAN : COLOUR_DARK_CYAN );
 const separatorColour = ( g.theme.dark ? COLOUR_LIGHT_GREY : COLOUR_DARK_GREY );
 
-const avwx = require('avwx');
-
 
 // read in the settings
 var settings = Object.assign({
   showSeconds: true,
   invertScrolling: false,
+  wxProvider: 'avwx',
 }, require('Storage').readJSON(APP_NAME+'.json', true) || {});
+
+
+// load the WX module
+var wx;
+try {
+  wx = require(settings.wxProvider);
+} catch (error) {
+  wx = settings.wxProvider+' module not available';
+}
 
 
 // globals
 var drawTimeout;
 var secondsInterval;
-var avwxTimeout;
+var wxTimeout;
 var gpsTimeout;
 
-var AVWXrequest;
+var WXrequest;
 var METAR = '';
 var METARlinesCount = 0;
 var METARscollLines = 0;
@@ -66,7 +74,7 @@ function timeStr(date, seconds) {
 
 
 // draw the METAR info
-function drawAVWX() {
+function drawWX() {
   let now = new Date();
   let METARage = 0;  // in minutes
   if (METARts) {
@@ -91,11 +99,11 @@ function drawAVWX() {
   METARlines.splice(0, METARscollLines);
   g.drawString(METARlines.join("\n"), horizontalCenter, y, true);
 
-  if (! avwxTimeout) { avwxTimeout = setTimeout(updateAVWX, 5 * 60000); }
+  if (! wxTimeout) { wxTimeout = setTimeout(updateWX, 5 * 60000); }
 }
 
-// show AVWX update status
-function showUpdateAVWXstatus(status) {
+// show WX update status
+function showUpdateWXstatus(status) {
   let y = Bangle.appRect.y + 10;
   g.setBgColor(g.theme.bg);
   g.clearRect(0, y, horizontalCenter - 54, y + 16);
@@ -111,38 +119,48 @@ function GPStookTooLong() {
   if (gpsTimeout) clearTimeout(gpsTimeout);
   gpsTimeout = undefined;
 
-  showUpdateAVWXstatus('X');
+  showUpdateWXstatus('X');
 
-  if (! avwxTimeout) { avwxTimeout = setTimeout(updateAVWX, 5 * 60000); }
+  if (! wxTimeout) { wxTimeout = setTimeout(updateWX, 5 * 60000); }
 }
 
 // update the METAR info
-function updateAVWX() {
-  if (avwxTimeout) clearTimeout(avwxTimeout);
-  avwxTimeout = undefined;
+function updateWX() {
+  if (wxTimeout) clearTimeout(wxTimeout);
+  wxTimeout = undefined;
   if (gpsTimeout) clearTimeout(gpsTimeout);
   gpsTimeout = undefined;
 
-  if (! NRF.getSecurityStatus().connected) {
-    // if Bluetooth is NOT connected, try again in 5min
-    showUpdateAVWXstatus('X');
-    avwxTimeout = setTimeout(updateAVWX, 5 * 60000);
+  if (typeof wx === 'string') {
+    // failed to load the WX module
+    showUpdateWXstatus('X');
+    METAR = '\n'+wx;
+    METARlinesCount = 0; METARscollLines = 0;
+    METARts = undefined;
+    drawWX();
     return;
   }
 
-  showUpdateAVWXstatus('GPS');
+  if (! NRF.getSecurityStatus().connected) {
+    // if Bluetooth is NOT connected, try again in 5min
+    showUpdateWXstatus('X');
+    wxTimeout = setTimeout(updateWX, 5 * 60000);
+    return;
+  }
+
+  showUpdateWXstatus('GPS');
   if (! METAR) {
     METAR = '\nUpdating METAR';
     METARlinesCount = 0; METARscollLines = 0;
     METARts = undefined;
   }
-  drawAVWX();
+  drawWX();
 
   gpsTimeout = setTimeout(GPStookTooLong, 30 * 60000);
   Bangle.setGPSPower(true, APP_NAME);
   Bangle.on('GPS', fix => {
     // prevent multiple, simultaneous requests
-    if (AVWXrequest) { return; }
+    if (WXrequest) { return; }
 
     if ('fix' in fix && fix.fix != 0 && fix.satellites >= 4) {
       Bangle.setGPSPower(false, APP_NAME);
@@ -152,56 +170,78 @@ function updateAVWX() {
       let lat = fix.lat;
       let lon = fix.lon;
 
-      showUpdateAVWXstatus('AVWX');
+      showUpdateWXstatus('WX');
       if (! METAR) {
         METAR = '\nUpdating METAR';
         METARlinesCount = 0; METARscollLines = 0;
         METARts = undefined;
       }
-      drawAVWX();
+      drawWX();
 
-      // get latest METAR from nearest airport (via AVWX API)
-      AVWXrequest = avwx.request('metar/'+lat+','+lon, 'onfail=nearest', data => {
-        if (avwxTimeout) clearTimeout(avwxTimeout);
-        avwxTimeout = undefined;
+      // get latest METAR from nearest airport (via WX API)
+      let requestPath, params;
+      if (settings.wxProvider === 'checkwx') {
+        requestPath = 'v2/metar/lat/'+lat+'/lon/'+lon+'/short';
+        params = 'limit=1';
+      } else {  // AVWX
+        requestPath = 'metar/'+lat+','+lon;
+        params = 'onfail=nearest';
+      }
+      WXrequest = wx.request(requestPath, params, data => {
+        if (wxTimeout) clearTimeout(wxTimeout);
+        wxTimeout = undefined;
 
         let METARjson = JSON.parse(data.resp);
+        METARts = undefined;
 
-        if ('sanitized' in METARjson) {
-          METAR = METARjson.sanitized;
-        } else {
-          METAR = 'No "sanitized" METAR data found!';
+        if (settings.wxProvider === 'checkwx') {
+          if ('results' in METARjson && METARjson.results === 1 && 'data' in METARjson) {
+            METAR = METARjson.data[0].raw_text;
+            METAR = METAR.replace(/^METAR /, '');
+            METARts = new Date(METARjson.data[0].observed);
+          } else {
+            METAR = 'No METAR data found!';
+          }
+
+        } else {  // AVWX
+          if ('sanitized' in METARjson) {
+            METAR = METARjson.sanitized;
+          } else {
+            METAR = 'No "sanitized" METAR data found!';
+          }
+
+          if ('time' in METARjson) {
+            METARts = new Date(METARjson.time.dt);
+          }
         }
+
         METARlinesCount = 0; METARscollLines = 0;
 
-        if ('time' in METARjson) {
-          METARts = new Date(METARjson.time.dt);
+        if (METARts) {
           let now = new Date();
           let METARage = Math.floor((now - METARts) / 60000);  // in minutes
           if (METARage <= 30) {
             // some METARs update every 30 min -> attempt to update after METAR is 35min old
-            avwxTimeout = setTimeout(updateAVWX, (35 - METARage) * 60000);
+            wxTimeout = setTimeout(updateWX, (35 - METARage) * 60000);
           } else if (METARage <= 60) {
             // otherwise, attempt METAR update after it's 65min old
-            avwxTimeout = setTimeout(updateAVWX, (65 - METARage) * 60000);
+            wxTimeout = setTimeout(updateWX, (65 - METARage) * 60000);
           }
-        } else {
-          METARts = undefined;
         }
 
-        showUpdateAVWXstatus('');
-        drawAVWX();
-        AVWXrequest = undefined;
+        showUpdateWXstatus('');
+        drawWX();
+        WXrequest = undefined;
 
       }, error => {
-        // AVWX API request failed
+        // WX API request failed
         console.log(error);
         METAR = 'ERR: ' + error;
         METARlinesCount = 0; METARscollLines = 0;
         METARts = undefined;
-        showUpdateAVWXstatus('');
-        drawAVWX();
-        AVWXrequest = undefined;
+        showUpdateWXstatus('');
+        drawWX();
+        WXrequest = undefined;
       });
     }
   });
@@ -238,7 +278,7 @@ function queueDraw() {
       let METARage = Math.floor((now - METARts) / 60000);
       if (METARage > 60) {
         // the METAR colour might have to be updated:
-        drawAVWX();
+        drawWX();
       }
     }
     draw();
@@ -279,7 +319,7 @@ function draw() {
 g.clear(true);
 
 // scroll METAR lines (either by touch or tap)
-function scrollAVWX(action) {
+function scrollWX(action) {
   switch (action) {
     case -1:  // top touch/tap
       if (settings.invertScrolling) {
@@ -302,16 +342,16 @@ function scrollAVWX(action) {
     default:
       // ignore other actions
   }
-  drawAVWX();
+  drawWX();
 }
 
 Bangle.on('tap', data => {
   switch (data.dir) {
     case 'top':
-      scrollAVWX(-1);
+      scrollWX(-1);
       break;
     case 'bottom':
-      scrollAVWX(1);
+      scrollWX(1);
       break;
     case 'front':
       // toggle seconds display on double tap on front/watch-face
@@ -333,7 +373,7 @@ Bangle.on('tap', data => {
   }
 });
 
-Bangle.setUI("clockupdown", scrollAVWX);
+Bangle.setUI("clockupdown", scrollWX);
 
 // load widgets
 Bangle.loadWidgets();
@@ -348,12 +388,12 @@ g.drawLine(0, y, g.getWidth(), y);
 draw();
 if (settings.showSeconds)
   syncSecondsUpdate();
-updateAVWX();
+updateWX();
 
 
 // TMP for debugging:
-//METAR = 'YAAA 011100Z 21014KT CAVOK 23/08 Q1018 RMK RF000/0000'; drawAVWX();
-//METAR = 'YAAA 150900Z 14012KT 9999 SCT045 BKN064 26/14 Q1012 RMK RF000/0000 DL-W/DL-NW'; drawAVWX();
-//METAR = 'YAAA 020030Z VRB CAVOK'; drawAVWX();
+//METAR = 'YAAA 011100Z 21014KT CAVOK 23/08 Q1018 RMK RF000/0000'; drawWX();
+//METAR = 'YAAA 150900Z 14012KT 9999 SCT045 BKN064 26/14 Q1012 RMK RF000/0000 DL-W/DL-NW'; drawWX();
+//METAR = 'YAAA 020030Z VRB CAVOK'; drawWX();
 //METARts = new Date(Date.now() - 61 * 60000);   // 61 to trigger warning, 91 to trigger alert
 

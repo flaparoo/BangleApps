@@ -6,8 +6,8 @@ A clock for aviators, with local time and UTC - and the latest METAR
 ![](screenshot.png)
 ![](screenshot2.png)
 
-This app depends on the [AVWX module](?id=avwx). Make sure to configure that
-module after installing this app.
+This app depends on either the [AVWX](?id=avwx) or the [CheckWX](?id=checkwx)
+module. Make sure to configure that module after installing this app.
 
 
 ## Features

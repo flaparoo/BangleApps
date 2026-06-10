@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="../../css/spectre.min.css">
+  </head>
+  <body>
+
+    <p>To use the <a href="https://www.checkwxapi.com/">CheckWX</a> API, you need an account and generate an API key. The free plan is sufficient, but please consider supporting them.</p>
+    <p>
+      <label class="form-label" for="CheckWXkey">CheckWX API Key:</label>
+      <input class="form-input" type="text" id="CheckWXkey" placeholder="Your personal CheckWX API Key" />
+    </p>
+    <p>
+      <button id="upload" class="btn btn-primary">Configure</button>
+    </p>
+
+    <p><div id="status"></div></p>
+
+    <script src="../../core/lib/interface.js"></script>
+    <script>
+      var CheckWXsettings = {};
+
+      function onInit() {
+        // read in existing settings to preserve them during an update
+        try {
+          Util.readStorageJSON('checkwx.json', currentSettings => {
+            if (currentSettings) {
+              CheckWXsettings = currentSettings;
+              if ('CheckWXkey' in CheckWXsettings) {
+                document.getElementById('CheckWXkey').value = CheckWXsettings.CheckWXkey;
+              }
+            }
+          });
+        } catch (e) {
+          console.log("Failed to read existing settings: "+e);
+        }
+      }
+
+      document.getElementById("upload").addEventListener("click", function() {
+        CheckWXsettings.CheckWXkey = document.getElementById('CheckWXkey').value;
+        Util.writeStorage('checkwx.json', JSON.stringify(CheckWXsettings), () => {
+          document.getElementById("status").innerHTML = 'CheckWX configuration successfully uploaded to Bangle!';
+        });
+      });
+    </script>
+
+  </body>
+</html>
