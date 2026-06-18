@@ -19,7 +19,6 @@ const APP_NAME = 'aviatorclk';
 const horizontalCenter = g.getWidth()/2;
 const mainTimeHeight = 38;
 const secondaryFontHeight = 22;
-require("Font8x16").add(Graphics); // tertiary font
 const dateColour = ( g.theme.dark ? COLOUR_YELLOW : COLOUR_BLUE );
 const UTCColour = ( g.theme.dark ? COLOUR_LIGHT_CYAN : COLOUR_DARK_CYAN );
 const separatorColour = ( g.theme.dark ? COLOUR_LIGHT_GREY : COLOUR_DARK_GREY );
